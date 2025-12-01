@@ -1,0 +1,263 @@
+import React, { useState } from 'react';
+import { Heart, Zap, RotateCcw, Scissors, Compass, MapPin, Sparkles, Scroll } from 'lucide-react';
+
+const TempleCard = () => {
+  const [fortune, setFortune] = useState<{ label: string; title: string; text: string; color: string; bg: string } | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
+
+  // 戀愛運勢資料庫
+  const fortunes = [
+    { label: "大吉", title: "紅鸞星動", text: "今日魅力爆棚，轉角遇到愛的機率極高！大膽展現自己吧。", color: "text-red-600", bg: "bg-red-50" },
+    { label: "上吉", title: "心有靈犀", text: "與心儀對象或是伴侶默契十足，試著主動傳個訊息，會有甜蜜回應。", color: "text-pink-600", bg: "bg-pink-50" },
+    { label: "中吉", title: "曖昧升溫", text: "若即若離的距離最美。今日適合保持神秘感，讓對方對你產生好奇。", color: "text-purple-600", bg: "bg-purple-50" },
+    { label: "小吉", title: "平淡是福", text: "今日感情運勢平穩。別太急躁，享受一個人的自在，緣分正在醞釀中。", color: "text-blue-600", bg: "bg-blue-50" },
+    { label: "平籤", title: "沉澱自我", text: "與其向外尋求，不如先愛自己。今日適合閱讀、運動，提升自我價值。", color: "text-stone-600", bg: "bg-stone-100" },
+  ];
+
+  const handleDraw = () => {
+    if (isShaking) return;
+    setIsShaking(true);
+    setFortune(null);
+    
+    // 模擬搖籤時間
+    setTimeout(() => {
+      const randomFortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+      setFortune(randomFortune);
+      setIsShaking(false);
+    }, 800);
+  };
+
+  const categories = [
+    {
+      id: 1,
+      title: "光速脫單・求正緣",
+      subtitle: "單身很久、想結婚、需要神推銷",
+      icon: <Zap className="w-6 h-6 text-red-600" />,
+      color: "bg-red-50",
+      borderColor: "border-red-200",
+      temples: [
+        { name: "台北霞海城隍廟", tag: "效率之王", desc: "不求籤、快狠準" },
+        { name: "台南大觀音亭", tag: "金牌仲介", desc: "闊嘴月老善說媒" },
+        { name: "高雄關帝廟", tag: "精準配對", desc: "遞履歷表般專業" },
+        { name: "宜蘭四結福德廟", tag: "強力放送", desc: "敲紅鸞心動鐘" },
+      ]
+    },
+    {
+      id: 2,
+      title: "挽回舊愛・求復合",
+      subtitle: "分手放不下、吵架想和好",
+      icon: <RotateCcw className="w-6 h-6 text-blue-600" />,
+      color: "bg-blue-50",
+      borderColor: "border-blue-200",
+      temples: [
+        { name: "台中樂成宮", tag: "復合聖地", desc: "籤詩分類超細膩" },
+        { name: "台南重慶寺", tag: "逆轉時光", desc: "攪醋矸讓愛回頭" },
+      ]
+    },
+    {
+      id: 3,
+      title: "斬爛桃花・防小三",
+      subtitle: "遇人不淑、斷開孽緣",
+      icon: <Scissors className="w-6 h-6 text-gray-700" />,
+      color: "bg-gray-100",
+      borderColor: "border-gray-300",
+      temples: [
+        { name: "台南祀典武廟", tag: "斬孽緣", desc: "拐杖月老打渣男" },
+        { name: "艋舺龍山寺", tag: "嚴格審核", desc: "三次聖筊才給線" },
+      ]
+    },
+    {
+      id: 4,
+      title: "曖昧加溫・感情穩定",
+      subtitle: "想突破曖昧、祈求定下來",
+      icon: <Heart className="w-6 h-6 text-pink-500" />,
+      color: "bg-pink-50",
+      borderColor: "border-pink-200",
+      temples: [
+        { name: "台南大天后宮", tag: "愛情魔藥", desc: "緣粉點臉增魅力" },
+        { name: "鹿港天后宮", tag: "愛情長跑", desc: "適合情侶求穩定" },
+      ]
+    },
+    {
+      id: 5,
+      title: "指點迷津・求籤解惑",
+      subtitle: "迷惘不知方向、適不適合",
+      icon: <Compass className="w-6 h-6 text-purple-600" />,
+      color: "bg-purple-50",
+      borderColor: "border-purple-200",
+      temples: [
+        { name: "日月潭龍鳳宮", tag: "神準籤詩", desc: "一針見血解迷惘" },
+        { name: "板橋慈惠宮", tag: "全方位", desc: "感情工作一起問" },
+      ]
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-stone-100 py-8 px-4 font-sans flex justify-center items-start">
+      <style>
+        {`
+          @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+          }
+          .shake-animation {
+            animation: shake 0.5s;
+            animation-iteration-count: infinite;
+          }
+        `}
+      </style>
+      {/* Main Card Container */}
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-red-800">
+        
+        {/* Header Section */}
+        <div className="bg-red-800 p-6 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+            <div className="absolute -top-10 -left-10 w-40 h-40 bg-yellow-400 rounded-full blur-3xl"></div>
+            <div className="absolute top-10 -right-10 w-40 h-40 bg-pink-400 rounded-full blur-3xl"></div>
+          </div>
+          <h1 className="text-3xl font-bold text-yellow-100 mb-2 tracking-wider">全台月老靈廟</h1>
+          <div className="inline-block bg-yellow-500 text-red-900 px-4 py-1 rounded-full text-sm font-bold shadow-lg">
+            求緣終極攻略圖卡
+          </div>
+          <p className="text-red-200 text-sm mt-3">依功能分類，找到你的命定月老</p>
+        </div>
+
+        {/* Fortune Telling Section - NEW */}
+        <div className="bg-orange-50 p-4 border-b-2 border-red-100">
+          <div className="text-center">
+            <h2 className="text-red-800 font-bold mb-2 flex items-center justify-center gap-2">
+              <Sparkles className="w-4 h-4" /> 每日戀愛靈籤 <Sparkles className="w-4 h-4" />
+            </h2>
+            
+            {!fortune ? (
+              <button 
+                onClick={handleDraw}
+                disabled={isShaking}
+                className={`
+                  ${isShaking ? 'shake-animation bg-red-400' : 'bg-red-600 hover:bg-red-700'} 
+                  text-white px-6 py-2 rounded-full font-bold shadow-md transition-all transform hover:scale-105 active:scale-95
+                  flex items-center justify-center gap-2 mx-auto
+                `}
+              >
+                <Scroll className="w-4 h-4" />
+                {isShaking ? '搖籤中...' : '點擊抽取今日運勢'}
+              </button>
+            ) : (
+              <div className={`mt-2 p-4 rounded-xl border ${fortune.bg} ${fortune.color.replace('text', 'border')} animate-fade-in`}>
+                <div className="flex justify-between items-center mb-2 border-b border-black/10 pb-2">
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-white/50 border border-black/5`}>
+                    {fortune.label}
+                  </span>
+                  <span className="text-lg font-bold">{fortune.title}</span>
+                  <button 
+                    onClick={() => setFortune(null)}
+                    className="text-xs text-gray-400 hover:text-gray-600 underline"
+                  >
+                    重抽
+                  </button>
+                </div>
+                <p className="text-sm font-medium text-gray-700 leading-relaxed text-left">
+                  {fortune.text}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Content Body */}
+        <div className="p-6 space-y-6 bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')]">
+          
+          {categories.map((cat) => (
+            <div key={cat.id} className={`rounded-xl border-2 ${cat.borderColor} overflow-hidden shadow-sm`}>
+              {/* Category Header */}
+              <div className={`${cat.color} p-3 flex items-center justify-between border-b ${cat.borderColor}`}>
+                <div className="flex items-center space-x-2">
+                  <div className="bg-white p-1.5 rounded-full shadow-sm">
+                    {cat.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-800">{cat.title}</h3>
+                    <p className="text-xs text-gray-500">{cat.subtitle}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Temples List */}
+              <div className="p-3 bg-white grid gap-2">
+                {cat.temples.map((temple, idx) => (
+                  <div key={idx} className="flex items-center justify-between group">
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="w-3 h-3 text-gray-400" />
+                      <span className="text-gray-800 font-medium text-sm">{temple.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="inline-block bg-stone-100 text-stone-600 text-[10px] px-2 py-0.5 rounded mr-2 border border-stone-200">
+                        {temple.desc}
+                      </span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                        cat.id === 1 ? 'bg-red-100 text-red-700' :
+                        cat.id === 2 ? 'bg-blue-100 text-blue-700' :
+                        cat.id === 3 ? 'bg-gray-200 text-gray-700' :
+                        cat.id === 4 ? 'bg-pink-100 text-pink-700' :
+                        'bg-purple-100 text-purple-700'
+                      }`}>
+                        {temple.tag}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* Golden Rules Footer */}
+          <div className="mt-8 border-t-2 border-dashed border-red-200 pt-6">
+            <div className="bg-red-50 rounded-lg p-5 border border-red-100 relative">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-3 py-1 text-xs font-bold rounded-full shadow-md">
+                拜月老三鐵則
+              </div>
+              <ul className="space-y-3 mt-2">
+                <li className="flex items-start text-sm text-gray-700">
+                  <span className="bg-red-200 text-red-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">1</span>
+                  <span>
+                    <strong className="text-red-700">供品要甜且雙：</strong>巧克力、麻糬、軟糖。數量成雙成對 (2, 6, 8)。
+                  </span>
+                </li>
+                <li className="flex items-start text-sm text-gray-700">
+                  <span className="bg-red-200 text-red-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">2</span>
+                  <span>
+                    <strong className="text-red-700">條件要精準：</strong>身高、個性、價值觀講清楚，像開履歷表一樣。
+                  </span>
+                </li>
+                <li className="flex items-start text-sm text-gray-700">
+                  <span className="bg-red-200 text-red-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">3</span>
+                  <span>
+                    <strong className="text-red-700">紅線一條就好：</strong>貪多容易爛桃花，舊的沒化掉前不要求新的。
+                  </span>
+                </li>
+              </ul>
+              <div className="mt-4 text-center">
+                <p className="text-xs text-red-400 font-serif">祝 良緣天定 幸福美滿</p>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+
+        {/* Bottom Decorative Bar */}
+        <div className="h-2 bg-yellow-500"></div>
+      </div>
+    </div>
+  );
+};
+
+export default TempleCard;
