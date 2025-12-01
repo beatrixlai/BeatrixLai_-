@@ -3,18 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全台月老靈廟攻略</title>
+    <title>全方位戀愛運勢站：月老・塔羅・靈數</title>
     
-    <!-- 1. 引入 Tailwind CSS (負責排版樣式) -->
+    <!-- 1. 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- 2. 引入 React 和 Babel (負責讓瀏覽器看懂程式碼) -->
+    <!-- 2. 引入 React 和 Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- 加入搖晃動畫樣式 -->
+    <!-- 3. 自定義動畫樣式 -->
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap');
+        
+        body { font-family: 'Helvetica Neue', Arial, 'Noto Serif TC', sans-serif; }
+        
+        /* 搖晃動畫 */
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
             10% { transform: translate(-1px, -2px) rotate(-1deg); }
@@ -28,157 +33,426 @@
             90% { transform: translate(1px, 2px) rotate(0deg); }
             100% { transform: translate(1px, -2px) rotate(-1deg); }
         }
-        .shake-animation {
-            animation: shake 0.5s;
-            animation-iteration-count: infinite;
+        .shake-animation { animation: shake 0.5s infinite; }
+        
+        /* 翻牌動畫 */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+
+        /* 雷達波紋動畫 */
+        @keyframes ping-slow {
+            75%, 100% { transform: scale(2); opacity: 0; }
         }
+        .animate-ping-slow { animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
     </style>
 </head>
-<body class="bg-stone-100">
+<body class="bg-stone-100 min-h-screen">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState } = React;
+        const { useState, useEffect } = React;
 
-        // --- 1. 定義圖示元件 (取代原本需要安裝的 Lucide 圖示) ---
+        // --- 0. 圖示庫 (SVG) ---
         const Icons = {
-            Zap: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-red-600"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
-            RotateCcw: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-blue-600"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
-            Scissors: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-gray-700"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>,
-            Heart: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-pink-500"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>,
-            Compass: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-purple-600"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>,
-            MapPin: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-gray-400"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
-            Sparkles: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>,
-            Scroll: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M8 17.5a5 5 0 0 1 2.5-9 2.5 2.5 0 0 1 2.5 9 5 5 0 0 0 2.5 9 2.5 2.5 0 0 0 2.5-9"/><path d="M19 17.5a2.5 2.5 0 0 0-5 0"/><path d="M10 2.5a2.5 2.5 0 0 0-5 0v15a2.5 2.5 0 0 0 5 0Z"/></svg>
+            Zap: () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+            RotateCcw: () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
+            Scissors: () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>,
+            Heart: () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>,
+            Compass: () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>,
+            MapPin: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
+            Sparkles: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>,
+            Cards: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="6" y="2" width="12" height="20" rx="2"></rect><line x1="6" y1="12" x2="18" y2="12"></line></svg>,
+            Hash: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>,
+            Navigation: () => <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>,
+            Locate: () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
+            Scroll: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 17.5a5 5 0 0 1 2.5-9 2.5 2.5 0 0 1 2.5 9 5 5 0 0 0 2.5 9 2.5 2.5 0 0 0 2.5-9"/><path d="M19 17.5a2.5 2.5 0 0 0-5 0"/><path d="M10 2.5a2.5 2.5 0 0 0-5 0v15a2.5 2.5 0 0 0 5 0Z"/></svg>
         };
 
-        // --- 2. 主程式邏輯 ---
-        const TempleCard = () => {
-            const [fortune, setFortune] = useState(null);
+        // --- 1. 資料庫 (新增 lat, lng 座標) ---
+        const TEMPLE_DATA = [
+            { 
+                id: 1, title: "求正緣", subtitle: "單身想婚、需要推銷", icon: <Icons.Zap className="text-red-600"/>, color: "bg-red-50", borderColor: "border-red-200", 
+                temples: [
+                    { name: "台北霞海城隍廟", tag: "效率王", desc: "不求籤、快狠準", lat: 25.0556, lng: 121.5100 }, 
+                    { name: "台南大觀音亭", tag: "闊嘴月老", desc: "月老善說媒", lat: 22.9982, lng: 120.2030 }, 
+                    { name: "高雄關帝廟", tag: "精準配對", desc: "填疏文像遞履歷", lat: 22.6288, lng: 120.3340 }, 
+                    { name: "宜蘭四結福德廟", tag: "最大金身", desc: "敲紅鸞心動鐘", lat: 24.6974, lng: 121.7745 }
+                ] 
+            },
+            { 
+                id: 2, title: "求復合", subtitle: "分手挽回、吵架和好", icon: <Icons.RotateCcw className="text-blue-600"/>, color: "bg-blue-50", borderColor: "border-blue-200", 
+                temples: [
+                    { name: "台中樂成宮", tag: "復合聖地", desc: "籤詩分類超細膩", lat: 24.1368, lng: 120.6973 }, 
+                    { name: "台南重慶寺", tag: "攪醋矸", desc: "逆時鐘攪醋能回頭", lat: 22.9912, lng: 120.2036 }
+                ] 
+            },
+            { 
+                id: 3, title: "斬爛桃花", subtitle: "遇人不淑、斷開孽緣", icon: <Icons.Scissors className="text-gray-700"/>, color: "bg-gray-100", borderColor: "border-gray-300", 
+                temples: [
+                    { name: "台南祀典武廟", tag: "拐杖月老", desc: "打跑渣男小三", lat: 22.9964, lng: 120.2030 }, 
+                    { name: "艋舺龍山寺", tag: "嚴格審核", desc: "三次聖筊才給線", lat: 25.0371, lng: 121.4999 }
+                ] 
+            },
+            { 
+                id: 4, title: "感情加溫", subtitle: "突破曖昧、祈求穩定", icon: <Icons.Heart className="text-pink-500"/>, color: "bg-pink-50", borderColor: "border-pink-200", 
+                temples: [
+                    { name: "台南大天后宮", tag: "緣粉加持", desc: "點臉頰增魅力", lat: 22.9962, lng: 120.2018 }, 
+                    { name: "鹿港天后宮", tag: "適合情侶", desc: "適合情侶求穩定", lat: 24.0569, lng: 120.4346 }
+                ] 
+            },
+            { 
+                id: 5, title: "指點迷津", subtitle: "不知方向、適不適合", icon: <Icons.Compass className="text-purple-600"/>, color: "bg-purple-50", borderColor: "border-purple-200", 
+                temples: [
+                    { name: "日月潭龍鳳宮", tag: "神準籤詩", desc: "一針見血解迷惘", lat: 23.8710, lng: 120.9080 }, 
+                    { name: "板橋慈惠宮", tag: "全方位", desc: "感情工作一起問", lat: 25.0089, lng: 121.4578 }
+                ] 
+            }
+        ];
+
+        const FORTUNE_STICKS = [
+            { label: "大吉", title: "紅鸞星動", text: "今日魅力爆棚，轉角遇到愛的機率極高！", color: "text-red-600", bg: "bg-red-50" },
+            { label: "上吉", title: "心有靈犀", text: "試著主動傳個訊息，會有意想不到的甜蜜回應。", color: "text-pink-600", bg: "bg-pink-50" },
+            { label: "中吉", title: "曖昧升溫", text: "若即若離的距離最美，保持神秘感讓對方好奇。", color: "text-purple-600", bg: "bg-purple-50" },
+            { label: "小吉", title: "平淡是福", text: "別太急躁，享受一個人的自在，緣分正在醞釀中。", color: "text-blue-600", bg: "bg-blue-50" },
+            { label: "平籤", title: "沉澱自我", text: "與其向外尋求，不如先愛自己。今日適合閱讀運動。", color: "text-stone-600", bg: "bg-stone-100" },
+        ];
+
+        const TAROT_CARDS = [
+            { name: "愚者", image: "🃏", keywords: "新的開始、冒險", advice: "不要害怕踏出第一步，愛情需要一點衝動。", reversed: false },
+            { name: "戀人", image: "💕", keywords: "選擇、和諧", advice: "傾聽內心的聲音，這是一段值得投入的關係。", reversed: false },
+            { name: "力量", image: "🦁", keywords: "勇氣、包容", advice: "以柔克剛，展現你的耐心與溫柔。", reversed: false },
+            { name: "命運之輪", image: "🎡", keywords: "轉變、時機", advice: "緣分來了擋不住，順其自然接受變化。", reversed: false },
+            { name: "星星", image: "✨", keywords: "希望、療癒", advice: "保持樂觀，未來的藍圖正在慢慢實現。", reversed: false },
+            { name: "太陽", image: "🌞", keywords: "快樂、成功", advice: "展現你陽光的一面，你的笑容就是最強的武器。", reversed: false },
+        ];
+
+        const NUMEROLOGY_DATA = {
+            1: { title: "開創型", desc: "主觀意識強，喜歡主導。適合能欣賞你才華的伴侶。" },
+            2: { title: "依賴型", desc: "敏感細膩，重視陪伴。需要一個能提供安全感的對象。" },
+            3: { title: "理想型", desc: "像個孩子般充滿好奇。愛情對你來說必須是有趣的。" },
+            4: { title: "穩定型", desc: "務實負責，追求安定。忠誠是你最大的優點。" },
+            5: { title: "自由型", desc: "熱愛自由，討厭束縛。你需要心靈契合的伴侶。" },
+            6: { title: "奉獻型", desc: "非常有愛心，喜歡照顧人。但要小心不要失去自我。" },
+            7: { title: "精神型", desc: "重視精神交流。你需要一個懂你沈默且有智慧的對象。" },
+            8: { title: "領袖型", desc: "渴望掌控，對感情有野心。適合勢均力敵的強者。" },
+            9: { title: "博愛型", desc: "浪漫且充滿夢想。你需要一個能支持你理想的靈魂伴侶。" },
+        };
+
+        // --- 2. 輔助函式 ---
+        // 計算生命靈數
+        const calculateLifePath = (dateString) => {
+            if (!dateString) return null;
+            const digits = dateString.replace(/[^0-9]/g, '').split('').map(Number);
+            let sum = digits.reduce((a, b) => a + b, 0);
+            while (sum > 9) sum = sum.toString().split('').map(Number).reduce((a, b) => a + b, 0);
+            return sum;
+        };
+
+        // 計算距離 (Haversine Formula)
+        const calculateDistance = (lat1, lon1, lat2, lon2) => {
+            const R = 6371; // 地球半徑 (km)
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return (R * c).toFixed(1); // 回傳小數點後一位
+        };
+
+        // --- 3. 主要應用程式 ---
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('temple');
+            const [birthDate, setBirthDate] = useState('');
+            const [lifePathNum, setLifePathNum] = useState(null);
+            
+            // 狀態區
+            const [stickFortune, setStickFortune] = useState(null);
             const [isShaking, setIsShaking] = useState(false);
+            const [tarotCard, setTarotCard] = useState(null);
+            const [isFlipping, setIsFlipping] = useState(false);
+            
+            // 定位功能狀態
+            const [userLocation, setUserLocation] = useState(null);
+            const [nearestTemple, setNearestTemple] = useState(null);
+            const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+            const [locationError, setLocationError] = useState(null);
 
-            const fortunes = [
-                { label: "大吉", title: "紅鸞星動", text: "今日魅力爆棚，轉角遇到愛的機率極高！大膽展現自己吧。", color: "text-red-600", bg: "bg-red-50" },
-                { label: "上吉", title: "心有靈犀", text: "與心儀對象或是伴侶默契十足，試著主動傳個訊息，會有甜蜜回應。", color: "text-pink-600", bg: "bg-pink-50" },
-                { label: "中吉", title: "曖昧升溫", text: "若即若離的距離最美。今日適合保持神秘感，讓對方對你產生好奇。", color: "text-purple-600", bg: "bg-purple-50" },
-                { label: "小吉", title: "平淡是福", text: "今日感情運勢平穩。別太急躁，享受一個人的自在，緣分正在醞釀中。", color: "text-blue-600", bg: "bg-blue-50" },
-                { label: "平籤", title: "沉澱自我", text: "與其向外尋求，不如先愛自己。今日適合閱讀、運動，提升自我價值。", color: "text-stone-600", bg: "bg-stone-100" },
-            ];
+            useEffect(() => {
+                if (birthDate) {
+                    setLifePathNum(calculateLifePath(birthDate));
+                }
+            }, [birthDate]);
 
-            const handleDraw = () => {
+            const handleStickDraw = () => {
                 if (isShaking) return;
                 setIsShaking(true);
-                setFortune(null);
+                setStickFortune(null);
                 setTimeout(() => {
-                    const randomFortune = fortunes[Math.floor(Math.random() * fortunes.length)];
-                    setFortune(randomFortune);
+                    setStickFortune(FORTUNE_STICKS[Math.floor(Math.random() * FORTUNE_STICKS.length)]);
                     setIsShaking(false);
                 }, 800);
             };
 
-            const categories = [
-                {
-                    id: 1, title: "光速脫單・求正緣", subtitle: "單身很久、想結婚、需要神推銷", icon: <Icons.Zap />, color: "bg-red-50", borderColor: "border-red-200",
-                    temples: [
-                        { name: "台北霞海城隍廟", tag: "效率之王", desc: "不求籤、快狠準" },
-                        { name: "台南大觀音亭", tag: "金牌仲介", desc: "闊嘴月老善說媒" },
-                        { name: "高雄關帝廟", tag: "精準配對", desc: "遞履歷表般專業" },
-                        { name: "宜蘭四結福德廟", tag: "強力放送", desc: "敲紅鸞心動鐘" },
-                    ]
-                },
-                {
-                    id: 2, title: "挽回舊愛・求復合", subtitle: "分手放不下、吵架想和好", icon: <Icons.RotateCcw />, color: "bg-blue-50", borderColor: "border-blue-200",
-                    temples: [
-                        { name: "台中樂成宮", tag: "復合聖地", desc: "籤詩分類超細膩" },
-                        { name: "台南重慶寺", tag: "逆轉時光", desc: "攪醋矸讓愛回頭" },
-                    ]
-                },
-                {
-                    id: 3, title: "斬爛桃花・防小三", subtitle: "遇人不淑、斷開孽緣", icon: <Icons.Scissors />, color: "bg-gray-100", borderColor: "border-gray-300",
-                    temples: [
-                        { name: "台南祀典武廟", tag: "斬孽緣", desc: "拐杖月老打渣男" },
-                        { name: "艋舺龍山寺", tag: "嚴格審核", desc: "三次聖筊才給線" },
-                    ]
-                },
-                {
-                    id: 4, title: "曖昧加溫・感情穩定", subtitle: "想突破曖昧、祈求定下來", icon: <Icons.Heart />, color: "bg-pink-50", borderColor: "border-pink-200",
-                    temples: [
-                        { name: "台南大天后宮", tag: "愛情魔藥", desc: "緣粉點臉增魅力" },
-                        { name: "鹿港天后宮", tag: "愛情長跑", desc: "適合情侶求穩定" },
-                    ]
-                },
-                {
-                    id: 5, title: "指點迷津・求籤解惑", subtitle: "迷惘不知方向、適不適合", icon: <Icons.Compass />, color: "bg-purple-50", borderColor: "border-purple-200",
-                    temples: [
-                        { name: "日月潭龍鳳宮", tag: "神準籤詩", desc: "一針見血解迷惘" },
-                        { name: "板橋慈惠宮", tag: "全方位", desc: "感情工作一起問" },
-                    ]
+            const handleTarotDraw = () => {
+                if (isFlipping) return;
+                setIsFlipping(true);
+                setTarotCard(null);
+                setTimeout(() => {
+                    setTarotCard(TAROT_CARDS[Math.floor(Math.random() * TAROT_CARDS.length)]);
+                    setIsFlipping(false);
+                }, 600);
+            };
+
+            // 尋找最近月老廟
+            const findNearest = () => {
+                setIsLoadingLocation(true);
+                setLocationError(null);
+                
+                if (!navigator.geolocation) {
+                    setLocationError("您的瀏覽器不支援定位功能");
+                    setIsLoadingLocation(false);
+                    return;
                 }
-            ];
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        setUserLocation({ lat: latitude, lng: longitude });
+
+                        // 扁平化所有廟宇資料以便搜尋
+                        let allTemples = [];
+                        TEMPLE_DATA.forEach(cat => {
+                            cat.temples.forEach(t => {
+                                allTemples.push({ ...t, categoryColor: cat.color, categoryBorder: cat.borderColor });
+                            });
+                        });
+
+                        // 尋找最短距離
+                        let minInfo = { distance: Infinity, temple: null };
+                        
+                        allTemples.forEach(temple => {
+                            const dist = parseFloat(calculateDistance(latitude, longitude, temple.lat, temple.lng));
+                            if (dist < minInfo.distance) {
+                                minInfo = { distance: dist, temple: temple };
+                            }
+                        });
+
+                        setNearestTemple(minInfo);
+                        setIsLoadingLocation(false);
+                    },
+                    (error) => {
+                        console.error(error);
+                        setLocationError("無法取得您的位置，請確認已開啟定位權限");
+                        setIsLoadingLocation(false);
+                    }
+                );
+            };
 
             return (
-                <div className="min-h-screen py-8 px-4 font-sans flex justify-center items-start">
+                <div className="flex justify-center items-start pt-8 pb-20 px-4">
                     <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-red-800">
+                        
+                        {/* 頂部區域 */}
                         <div className="bg-red-800 p-6 text-center relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-                                <div className="absolute -top-10 -left-10 w-40 h-40 bg-yellow-400 rounded-full blur-3xl"></div>
-                                <div className="absolute top-10 -right-10 w-40 h-40 bg-pink-400 rounded-full blur-3xl"></div>
-                            </div>
-                            <h1 className="text-3xl font-bold text-yellow-100 mb-2 tracking-wider">全台月老靈廟</h1>
-                            <div className="inline-block bg-yellow-500 text-red-900 px-4 py-1 rounded-full text-sm font-bold shadow-lg">求緣終極攻略圖卡</div>
-                            <p className="text-red-200 text-sm mt-3">依功能分類，找到你的命定月老</p>
-                        </div>
+                            <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                            <h1 className="text-2xl font-bold text-yellow-100 mb-1 tracking-wider">全方位戀愛運勢</h1>
+                            <div className="text-red-200 text-xs mb-4">月老 x 塔羅 x 生命靈數</div>
 
-                        <div className="bg-orange-50 p-4 border-b-2 border-red-100">
-                            <div className="text-center">
-                                <h2 className="text-red-800 font-bold mb-2 flex items-center justify-center gap-2">
-                                    <Icons.Sparkles /> 每日戀愛靈籤 <Icons.Sparkles />
-                                </h2>
-                                {!fortune ? (
-                                    <button onClick={handleDraw} disabled={isShaking} className={`${isShaking ? 'shake-animation bg-red-400' : 'bg-red-600 hover:bg-red-700'} text-white px-6 py-2 rounded-full font-bold shadow-md transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2 mx-auto`}>
-                                        <Icons.Scroll /> {isShaking ? '搖籤中...' : '點擊抽取今日運勢'}
-                                    </button>
-                                ) : (
-                                    <div className={`mt-2 p-4 rounded-xl border ${fortune.bg} ${fortune.color.replace('text', 'border')} animate-fade-in`}>
-                                        <div className="flex justify-between items-center mb-2 border-b border-black/10 pb-2">
-                                            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-white/50 border border-black/5">{fortune.label}</span>
-                                            <span className="text-lg font-bold">{fortune.title}</span>
-                                            <button onClick={() => setFortune(null)} className="text-xs text-gray-400 hover:text-gray-600 underline">重抽</button>
-                                        </div>
-                                        <p className="text-sm font-medium text-gray-700 leading-relaxed text-left">{fortune.text}</p>
-                                    </div>
-                                )}
+                            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-red-400/30">
+                                <label className="block text-red-100 text-xs mb-1 text-left">請輸入生日 (西元)：</label>
+                                <div className="flex items-center gap-2">
+                                    <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)}
+                                        className="w-full bg-white/90 text-gray-800 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+                                    {lifePathNum && (
+                                        <span className="bg-yellow-400 text-red-900 font-bold w-8 h-8 flex items-center justify-center rounded-full shrink-0 shadow-lg animate-bounce">
+                                            {lifePathNum}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="p-6 space-y-6 bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')]">
-                            {categories.map((cat) => (
-                                <div key={cat.id} className={`rounded-xl border-2 ${cat.borderColor} overflow-hidden shadow-sm`}>
-                                    <div className={`${cat.color} p-3 flex items-center justify-between border-b ${cat.borderColor}`}>
-                                        <div className="flex items-center space-x-2">
-                                            <div className="bg-white p-1.5 rounded-full shadow-sm">{cat.icon}</div>
-                                            <div>
-                                                <h3 className="font-bold text-gray-800">{cat.title}</h3>
-                                                <p className="text-xs text-gray-500">{cat.subtitle}</p>
-                                            </div>
+                        {/* 分頁 Tab */}
+                        <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10">
+                            <button onClick={() => setActiveTab('temple')} className={`flex-1 py-3 text-sm font-bold flex justify-center items-center gap-1 ${activeTab === 'temple' ? 'text-red-700 border-b-2 border-red-700 bg-red-50' : 'text-gray-400 hover:text-gray-600'}`}>
+                                <Icons.MapPin className="w-4 h-4"/> 月老攻略
+                            </button>
+                            <button onClick={() => setActiveTab('fortune')} className={`flex-1 py-3 text-sm font-bold flex justify-center items-center gap-1 ${activeTab === 'fortune' ? 'text-purple-700 border-b-2 border-purple-700 bg-purple-50' : 'text-gray-400 hover:text-gray-600'}`}>
+                                <Icons.Cards className="w-4 h-4"/> 運勢占卜
+                            </button>
+                            <button onClick={() => setActiveTab('numerology')} className={`flex-1 py-3 text-sm font-bold flex justify-center items-center gap-1 ${activeTab === 'numerology' ? 'text-blue-700 border-b-2 border-blue-700 bg-blue-50' : 'text-gray-400 hover:text-gray-600'}`}>
+                                <Icons.Hash className="w-4 h-4"/> 生命靈數
+                            </button>
+                        </div>
+
+                        <div className="bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')] min-h-[400px]">
+                            
+                            {/* 1. 月老攻略 (含定位功能) */}
+                            {activeTab === 'temple' && (
+                                <div className="p-4 space-y-4 animate-fade-in">
+                                    
+                                    {/* --- 新增：定位最近月老區塊 --- */}
+                                    <div className="bg-white rounded-xl shadow-md p-4 border-2 border-yellow-400 relative overflow-hidden">
+                                        <div className="relative z-10 text-center">
+                                            <h2 className="text-yellow-700 font-bold mb-3 flex items-center justify-center gap-2">
+                                                <Icons.Locate /> 尋找身邊的緣分
+                                            </h2>
+                                            
+                                            {!nearestTemple ? (
+                                                <button onClick={findNearest} disabled={isLoadingLocation}
+                                                    className={`w-full py-2 rounded-full font-bold text-white shadow-md transition-all flex items-center justify-center gap-2 
+                                                    ${isLoadingLocation ? 'bg-gray-400 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600 active:scale-95'}`}>
+                                                    {isLoadingLocation ? (
+                                                        <>
+                                                            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                                            定位搜尋中...
+                                                        </>
+                                                    ) : '點擊搜尋「最近的月老廟」'}
+                                                </button>
+                                            ) : (
+                                                <div className="animate-fade-in text-left bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div>
+                                                            <div className="text-xs text-yellow-600 font-bold mb-1">最近的救星是：</div>
+                                                            <div className="text-xl font-bold text-gray-800">{nearestTemple.temple.name}</div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <span className="block text-2xl font-bold text-red-600">{nearestTemple.distance}</span>
+                                                            <span className="text-xs text-gray-500">公里 (直線)</span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="flex gap-2 mb-3">
+                                                        <span className="text-xs bg-white border border-gray-200 px-2 py-0.5 rounded text-gray-600 font-medium">
+                                                            {nearestTemple.temple.tag}
+                                                        </span>
+                                                        <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold">
+                                                            {nearestTemple.temple.desc}
+                                                        </span>
+                                                    </div>
+
+                                                    <a href={`https://www.google.com/maps/dir/?api=1&destination=${nearestTemple.temple.lat},${nearestTemple.temple.lng}`} 
+                                                       target="_blank"
+                                                       className="block w-full text-center bg-blue-600 text-white text-sm py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-1">
+                                                        <Icons.Navigation /> 開啟 Google Maps 導航
+                                                    </a>
+                                                    
+                                                    <button onClick={findNearest} className="w-full text-center text-xs text-gray-400 mt-2 underline">重新定位</button>
+                                                </div>
+                                            )}
+                                            
+                                            {locationError && <div className="text-red-500 text-xs mt-2">{locationError}</div>}
+                                        </div>
+                                        {/* 裝飾背景 */}
+                                        <div className="absolute -right-4 -bottom-4 text-yellow-100/50 w-24 h-24 rotate-12 pointer-events-none">
+                                            <Icons.Locate />
                                         </div>
                                     </div>
-                                    <div className="p-3 bg-white grid gap-2">
-                                        {cat.temples.map((temple, idx) => (
-                                            <div key={idx} className="flex items-center justify-between group">
+                                    {/* --- 結束：定位區塊 --- */}
+
+                                    <div className="text-center text-xs text-gray-500 mb-2 mt-4">或是依照需求，選擇你的命定月老</div>
+                                    
+                                    {TEMPLE_DATA.map((cat) => (
+                                        <div key={cat.id} className={`rounded-xl border ${cat.borderColor} overflow-hidden shadow-sm bg-white`}>
+                                            <div className={`${cat.color} p-3 flex items-center justify-between border-b ${cat.borderColor}`}>
                                                 <div className="flex items-center space-x-2">
-                                                    <Icons.MapPin />
-                                                    <span className="text-gray-800 font-medium text-sm">{temple.name}</span>
-                                                </div>
-                                                <div className="text-right">
-                                                    <span className="inline-block bg-stone-100 text-stone-600 text-[10px] px-2 py-0.5 rounded mr-2 border border-stone-200">{temple.desc}</span>
-                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cat.id === 1 ? 'bg-red-100 text-red-700' : cat.id === 2 ? 'bg-blue-100 text-blue-700' : cat.id === 3 ? 'bg-gray-200 text-gray-700' : cat.id === 4 ? 'bg-pink-100 text-pink-700' : 'bg-purple-100 text-purple-700'}`}>{temple.tag}</span>
+                                                    <div className="bg-white p-1.5 rounded-full shadow-sm">{cat.icon}</div>
+                                                    <div>
+                                                        <h3 className="font-bold text-gray-800 text-sm">{cat.title}</h3>
+                                                        <p className="text-[10px] text-gray-500">{cat.subtitle}</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        ))}
+                                            <div className="p-2 grid grid-cols-1 gap-1">
+                                                {cat.temples.map((t, idx) => (
+                                                    <div key={idx} className="flex justify-between items-center px-2 py-1.5 hover:bg-gray-50 rounded">
+                                                        <span className="text-sm text-gray-700 font-medium">{t.name}</span>
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-[10px] bg-white border border-gray-200 px-1.5 py-0.5 rounded text-gray-500 mb-0.5">{t.tag}</span>
+                                                            <span className="text-[9px] text-gray-400">{t.desc}</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* 2. 運勢占卜頁面 */}
+                            {activeTab === 'fortune' && (
+                                <div className="p-4 space-y-8 animate-fade-in">
+                                    <div className="bg-white rounded-xl shadow-md p-4 border border-red-100">
+                                        <h2 className="text-center font-bold text-red-800 mb-3 flex items-center justify-center gap-2">
+                                            <Icons.Scroll /> 每日戀愛靈籤
+                                        </h2>
+                                        {!stickFortune ? (
+                                            <button onClick={handleStickDraw} disabled={isShaking} 
+                                                className={`w-full ${isShaking ? 'bg-red-400 shake-animation' : 'bg-gradient-to-r from-red-600 to-red-500'} text-white py-3 rounded-lg font-bold shadow-lg transition-all`}>
+                                                {isShaking ? '誠心祈求中...' : '搖一搖求籤'}
+                                            </button>
+                                        ) : (
+                                            <div className={`text-center p-4 rounded-lg border-2 border-dashed ${stickFortune.bg.replace('bg-', 'border-')} ${stickFortune.bg}`}>
+                                                <div className={`text-2xl font-bold mb-1 ${stickFortune.color}`}>{stickFortune.label}</div>
+                                                <div className="text-lg font-bold text-gray-800 mb-2">{stickFortune.title}</div>
+                                                <p className="text-sm text-gray-600">{stickFortune.text}</p>
+                                                <button onClick={() => setStickFortune(null)} className="mt-3 text-xs text-gray-400 underline">重抽</button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="bg-white rounded-xl shadow-md p-4 border border-purple-100">
+                                        <h2 className="text-center font-bold text-purple-800 mb-3 flex items-center justify-center gap-2">
+                                            <Icons.Sparkles /> 今日塔羅指引
+                                        </h2>
+                                        {!tarotCard ? (
+                                            <div onClick={handleTarotDraw} className="cursor-pointer group perspective-1000 w-32 h-48 mx-auto relative">
+                                                <div className={`w-full h-full bg-purple-600 rounded-lg shadow-xl border-4 border-white flex items-center justify-center text-white text-4xl transition-transform duration-500 ${isFlipping ? 'rotate-y-180' : ''}`}>🔮</div>
+                                                <p className="text-center text-xs text-gray-400 mt-2">點擊卡背抽牌</p>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center animate-fade-in">
+                                                <div className="w-20 h-28 bg-white border-2 border-purple-200 rounded mx-auto mb-2 flex items-center justify-center text-4xl shadow-sm">{tarotCard.image}</div>
+                                                <h3 className="font-bold text-lg text-gray-800">{tarotCard.name}</h3>
+                                                <div className="flex justify-center gap-2 my-1">
+                                                    {tarotCard.keywords.split('、').map(k => (
+                                                        <span key={k} className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{k}</span>
+                                                    ))}
+                                                </div>
+                                                <p className="text-sm text-gray-600 mt-2 bg-purple-50 p-2 rounded">{tarotCard.advice}</p>
+                                                <button onClick={() => setTarotCard(null)} className="mt-2 text-xs text-gray-400 underline">重抽</button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                            ))}
+                            )}
+
+                            {/* 3. 生命靈數頁面 */}
+                            {activeTab === 'numerology' && (
+                                <div className="p-6 animate-fade-in">
+                                    {!birthDate ? (
+                                        <div className="text-center py-10">
+                                            <div className="text-6xl mb-4">🔢</div>
+                                            <h3 className="text-lg font-bold text-gray-700 mb-2">請先輸入生日</h3>
+                                            <p className="text-sm text-gray-500">請在上方紅色區塊輸入您的西元出生年月日，<br/>我將為您解析專屬的「戀愛性格靈數」。</p>
+                                        </div>
+                                    ) : lifePathNum ? (
+                                        <div className="bg-white rounded-xl shadow-lg border-t-4 border-blue-500 overflow-hidden">
+                                            <div className="bg-blue-50 p-6 text-center border-b border-blue-100">
+                                                <div className="text-xs text-blue-600 font-bold tracking-widest mb-1">YOUR NUMBER</div>
+                                                <div className="text-6xl font-black text-blue-600 mb-2 drop-shadow-sm">{lifePathNum}</div>
+                                                <h2 className="text-xl font-bold text-gray-800">{NUMEROLOGY_DATA[lifePathNum]?.title || "神祕人"}</h2>
+                                            </div>
+                                            <div className="p-6">
+                                                <h3 className="text-sm font-bold text-gray-400 mb-2 uppercase">Character Analysis</h3>
+                                                <p className="text-gray-700 leading-relaxed text-justify">{NUMEROLOGY_DATA[lifePathNum]?.desc}</p>
+                                            </div>
+                                        </div>
+                                    ) : null}
+                                </div>
+                            )}
                         </div>
                         <div className="h-2 bg-yellow-500"></div>
                     </div>
@@ -187,7 +461,7 @@
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<TempleCard />);
+        root.render(<App />);
     </script>
 </body>
 </html>
