@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Heart, Zap, RotateCcw, Scissors, Compass, MapPin, Sparkles, Scroll } from 'lucide-react';
 
+// --- TempleCard Component (原 moon_god_guide.tsx 的內容) ---
+
 const TempleCard = () => {
   const [fortune, setFortune] = useState<{ label: string; title: string; text: string; color: string; bg: string } | null>(null);
   const [isShaking, setIsShaking] = useState(false);
@@ -131,7 +133,7 @@ const TempleCard = () => {
           <p className="text-red-200 text-sm mt-3">依功能分類，找到你的命定月老</p>
         </div>
 
-        {/* Fortune Telling Section - NEW */}
+        {/* Fortune Telling Section */}
         <div className="bg-orange-50 p-4 border-b-2 border-red-100">
           <div className="text-center">
             <h2 className="text-red-800 font-bold mb-2 flex items-center justify-center gap-2">
@@ -260,4 +262,14 @@ const TempleCard = () => {
   );
 };
 
-export default TempleCard;
+// --- App Component ---
+
+function App() {
+  return (
+    <div className="w-full min-h-screen">
+      <TempleCard />
+    </div>
+  )
+}
+
+export default App;
