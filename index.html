@@ -13,13 +13,14 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- 3. 自定義動畫樣式 -->
+    <!-- 3. 自定義動畫樣式與字體 -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap');
         
         body { font-family: 'Helvetica Neue', Arial, 'Noto Serif TC', sans-serif; }
+        .handwritten { font-family: 'Kalam', 'cursive', sans-serif; }
         
-        /* 搖晃動畫 */
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
             10% { transform: translate(-1px, -2px) rotate(-1deg); }
@@ -35,7 +36,6 @@
         }
         .shake-animation { animation: shake 0.5s infinite; }
         
-        /* 翻牌動畫 */
         .perspective-1000 { perspective: 1000px; }
         .transform-style-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; }
@@ -52,6 +52,7 @@
         const { useState, useEffect } = React;
 
         // --- 0. 圖示庫 (SVG) ---
+        // 基本圖示
         const Icons = {
             Zap: () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
             RotateCcw: () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
@@ -70,10 +71,77 @@
             Star: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
             YinYang: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a5 5 0 0 0 5 5 5 5 0 0 1 5 5"/><path d="M12 22a5 5 0 0 0-5-5 5 5 0 0 1-5-5"/><circle cx="12" cy="7" r="1" fill="currentColor"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>,
             Feather: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15" x2="9" y2="15"></line></svg>,
-            Hexagon: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+            Hexagon: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>,
+            
+            // --- NEW: Q版手繪風插圖 (置頂且可愛化) ---
+            
+            // 1. Q版廟宇 (Temple): 圓潤的屋頂，像一個可愛的小房子
+            TempleIllustration: () => (
+                <svg className="w-full h-full text-red-400" viewBox="0 0 100 100" fill="currentColor" opacity="0.3">
+                    {/* 圓潤的屋頂 */}
+                    <path d="M10 45 Q 50 5 90 45" stroke="currentColor" strokeWidth="8" strokeLinecap="round" fill="none" />
+                    {/* 胖胖的柱子和牆壁 */}
+                    <rect x="25" y="45" width="50" height="45" rx="5" ry="5" fill="currentColor" opacity="0.5" />
+                    <rect x="20" y="45" width="8" height="45" rx="4" fill="currentColor" />
+                    <rect x="72" y="45" width="8" height="45" rx="4" fill="currentColor" />
+                    {/* 圓圓的門 */}
+                    <path d="M40 90 L40 65 Q50 55 60 65 L60 90 Z" fill="white" opacity="0.8" />
+                </svg>
+            ),
+
+            // 2. Q版靈籤 (Fortune): 圓滾滾的籤筒，晃出幾根籤
+            FortuneIllustration: () => (
+                <svg className="w-full h-full text-purple-400" viewBox="0 0 100 100" fill="currentColor" opacity="0.3">
+                    {/* 籤 */}
+                    <line x1="40" y1="40" x2="30" y2="10" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
+                    <line x1="50" y1="40" x2="50" y2="5" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
+                    <line x1="60" y1="40" x2="70" y2="10" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
+                    {/* 圓胖的籤筒 */}
+                    <path d="M25 40 L30 85 Q50 100 70 85 L75 40 Q50 55 25 40 Z" fill="currentColor" opacity="0.6" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
+                    {/* 裝飾標籤 */}
+                    <circle cx="50" cy="65" r="12" fill="white" opacity="0.8" />
+                    <text x="50" y="70" fontSize="10" textAnchor="middle" fill="currentColor" className="font-bold">吉</text>
+                </svg>
+            ),
+
+            // 3. Q版星星 (Ziwei): 胖胖的星星，還有表情
+            ZiweiIllustration: () => (
+                <svg className="w-full h-full text-indigo-400" viewBox="0 0 100 100" fill="currentColor" opacity="0.4">
+                    {/* 大星星 */}
+                    <path d="M50 15 Q58 35 75 35 Q58 45 65 65 Q45 55 30 65 Q38 45 20 35 Q42 35 50 15 Z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" fill="none" transform="translate(5, 5)" />
+                    {/* 眼睛 */}
+                    <circle cx="45" cy="45" r="3" fill="currentColor" />
+                    <circle cx="60" cy="45" r="3" fill="currentColor" />
+                    {/* 小星星裝飾 */}
+                    <circle cx="80" cy="20" r="4" fill="currentColor" />
+                    <circle cx="20" cy="80" r="4" fill="currentColor" />
+                    <circle cx="85" cy="80" r="3" fill="currentColor" />
+                </svg>
+            ),
+
+            // 4. Q版愛心 (Match): 兩個圓潤的愛心靠在一起
+            MatchIllustration: () => (
+                <svg className="w-full h-full text-pink-400" viewBox="0 0 100 100" fill="currentColor" opacity="0.4">
+                    {/* 左邊愛心 */}
+                    <path d="M50 80 C20 60 5 45 25 25 C40 10 50 35 50 35" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                    {/* 右邊愛心 */}
+                    <path d="M50 35 C50 35 60 10 75 25 C95 45 80 60 50 80" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                    {/* 閃亮點 */}
+                    <circle cx="75" cy="25" r="4" fill="white" opacity="0.8" />
+                    <circle cx="25" cy="25" r="4" fill="white" opacity="0.8" />
+                </svg>
+            )
         };
 
-        // --- 1. 資料庫 (廟宇、籤詩、塔羅、靈數) ---
+        const StickyNote = ({ children, className = "", color = "bg-yellow-100", border = "border-yellow-200" }) => (
+            <div className={`relative ${color} text-stone-700 p-3 text-sm leading-relaxed shadow-lg border-b-4 border-r-2 ${border} transform -rotate-1 mx-1 my-3 handwritten rounded-sm z-20 ${className}`}>
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-4 h-8 bg-white/40 rotate-90 blur-[1px]"></div>
+                <span className="font-bold opacity-80 block mb-1 text-base">📌 小提示：</span>
+                {children}
+            </div>
+        );
+
+        // --- 資料庫 (略，保持不變) ---
         const TEMPLE_DATA = [
             { id: 1, title: "求正緣", subtitle: "單身想婚、需要推銷", icon: <Icons.Zap className="text-red-600"/>, color: "bg-red-50", borderColor: "border-red-200", temples: [{ name: "台北霞海城隍廟", tag: "效率王", desc: "不求籤、快狠準", lat: 25.0556, lng: 121.5100 }, { name: "台南大觀音亭", tag: "闊嘴月老", desc: "月老善說媒", lat: 22.9982, lng: 120.2030 }, { name: "高雄關帝廟", tag: "精準配對", desc: "填疏文像遞履歷", lat: 22.6288, lng: 120.3340 }, { name: "宜蘭四結福德廟", tag: "最大金身", desc: "敲紅鸞心動鐘", lat: 24.6974, lng: 121.7745 }] },
             { id: 2, title: "求復合", subtitle: "分手挽回、吵架和好", icon: <Icons.RotateCcw className="text-blue-600"/>, color: "bg-blue-50", borderColor: "border-blue-200", temples: [{ name: "台中樂成宮", tag: "復合聖地", desc: "籤詩分類超細膩", lat: 24.1368, lng: 120.6973 }, { name: "台南重慶寺", tag: "攪醋矸", desc: "逆時鐘攪醋能回頭", lat: 22.9912, lng: 120.2036 }] },
@@ -81,7 +149,6 @@
             { id: 4, title: "感情加溫", subtitle: "突破曖昧、祈求穩定", icon: <Icons.Heart className="text-pink-500"/>, color: "bg-pink-50", borderColor: "border-pink-200", temples: [{ name: "台南大天后宮", tag: "緣粉加持", desc: "點臉頰增魅力", lat: 22.9962, lng: 120.2018 }, { name: "鹿港天后宮", tag: "適合情侶", desc: "適合情侶求穩定", lat: 24.0569, lng: 120.4346 }] },
             { id: 5, title: "指點迷津", subtitle: "不知方向、適不適合", icon: <Icons.Compass className="text-purple-600"/>, color: "bg-purple-50", borderColor: "border-purple-200", temples: [{ name: "日月潭龍鳳宮", tag: "神準籤詩", desc: "一針見血解迷惘", lat: 23.8710, lng: 120.9080 }, { name: "板橋慈惠宮", tag: "全方位", desc: "感情工作一起問", lat: 25.0089, lng: 121.4578 }] }
         ];
-
         const FORTUNE_STICKS = [
             { label: "大吉", title: "紅鸞星動", text: "今日魅力爆棚，轉角遇到愛的機率極高！", color: "text-red-600", bg: "bg-red-50" },
             { label: "上吉", title: "心有靈犀", text: "試著主動傳個訊息，會有意想不到的甜蜜回應。", color: "text-pink-600", bg: "bg-pink-50" },
@@ -89,7 +156,6 @@
             { label: "小吉", title: "平淡是福", text: "別太急躁，享受一個人的自在，緣分正在醞釀中。", color: "text-blue-600", bg: "bg-blue-50" },
             { label: "平籤", title: "沉澱自我", text: "與其向外尋求，不如先愛自己。今日適合閱讀運動。", color: "text-stone-600", bg: "bg-stone-100" },
         ];
-
         const TAROT_CARDS = [
             { name: "愚者", image: "🃏", keywords: "新的開始、冒險", advice: "不要害怕踏出第一步，愛情需要一點衝動。", reversed: false },
             { name: "戀人", image: "💕", keywords: "選擇、和諧", advice: "傾聽內心的聲音，這是一段值得投入的關係。", reversed: false },
@@ -98,7 +164,6 @@
             { name: "星星", image: "✨", keywords: "希望、療癒", advice: "保持樂觀，未來的藍圖正在慢慢實現。", reversed: false },
             { name: "太陽", image: "🌞", keywords: "快樂、成功", advice: "展現你陽光的一面，你的笑容就是最強的武器。", reversed: false },
         ];
-
         const NUMEROLOGY_DATA = {
             1: { title: "開創型", desc: "主觀意識強，喜歡主導。適合能欣賞你才華的伴侶。" },
             2: { title: "依賴型", desc: "敏感細膩，重視陪伴。需要一個能提供安全感的對象。" },
@@ -110,8 +175,6 @@
             8: { title: "領袖型", desc: "渴望掌控，對感情有野心。適合勢均力敵的強者。" },
             9: { title: "博愛型", desc: "浪漫且充滿夢想。你需要一個能支持你理想的靈魂伴侶。" },
         };
-
-        // --- 紫微斗數資料 ---
         const ZIWEI_STARS = {
             "紫微": { type: "帝王星", character: "尊貴、領導、權威", love: "眼光高，喜歡有能力、能讓自己崇拜的對象。", desc: "您是天生的領導者，氣場強大，在感情中習慣掌握主導權，需要另一半的尊重與服從。" },
             "天機": { type: "智慧星", character: "機智、多變、善良", love: "喜歡聰明、有才華、能一起動腦的對象。", desc: "您頭腦靈活，善於分析，在感情中容易想太多而患得患失，需要一位能安撫您思緒的伴侶。" },
@@ -128,8 +191,6 @@
             "七殺": { type: "將軍星", character: "衝勁、獨立、嚴肅", love: "喜歡有個性、不服輸、能一起打拼的對象。", desc: "您個性剛烈，行動力強，在感情中敢愛敢恨，不喜歡拖泥帶水，認定了就會堅持到底。" },
             "破軍": { type: "耗星", character: "破壞、創新、變動", love: "喜歡獨特、不按牌理出牌、有挑戰性的對象。", desc: "您求新求變，不喜受束縛，在感情中起伏較大，容易一見鍾情，也可能因為無聊而離開。" }
         };
-
-        // --- 星座八字邏輯資料 ---
         const ZODIAC_SIGNS = [
             { name: "摩羯座", start: "12-22", element: "土", mode: "基本" },
             { name: "水瓶座", start: "01-20", element: "風", mode: "固定" },
@@ -144,13 +205,10 @@
             { name: "天蠍座", start: "10-24", element: "水", mode: "固定" },
             { name: "射手座", start: "11-23", element: "火", mode: "變動" },
         ];
-        
         const HEAVENLY_STEMS = ["庚", "辛", "壬", "癸", "甲", "乙", "丙", "丁", "戊", "己"]; 
         const EARTHLY_BRANCHES = ["申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"]; 
         const ANIMALS = ["猴", "雞", "狗", "豬", "鼠", "牛", "虎", "兔", "龍", "蛇", "馬", "羊"];
         const FIVE_ELEMENTS = { "甲": "木", "乙": "木", "丙": "火", "丁": "火", "戊": "土", "己": "土", "庚": "金", "辛": "金", "壬": "水", "癸": "水" };
-
-        // 姓名五行模擬資料
         const NAME_ELEMENTS = ["金", "木", "水", "火", "土"];
         const NAME_RELATIONSHIPS = {
             "相生": { score: 95, text: "你們的名字五行相生，磁場互補，能互相帶旺運勢，是天作之合。" },
@@ -158,7 +216,7 @@
             "比和": { score: 85, text: "五行相同，性格相似，像朋友一樣有默契，但也容易缺乏互補的新鮮感。" }
         };
 
-        // --- 2. 輔助函式 ---
+        // --- 輔助函式 (略，保持不變) ---
         const getZodiacObj = (dateString) => {
             const date = new Date(dateString);
             const month = date.getMonth() + 1;
@@ -176,20 +234,12 @@
             if ((month == 11 && day >= 23) || (month == 12 && day <= 21)) return ZODIAC_SIGNS[11];
             return ZODIAC_SIGNS[0];
         };
-
         const getBaziYear = (dateString) => {
             const year = new Date(dateString).getFullYear();
             const stemIndex = year % 10;
             const branchIndex = year % 12;
-            return { 
-                year, 
-                stem: HEAVENLY_STEMS[stemIndex], 
-                branch: EARTHLY_BRANCHES[branchIndex], 
-                animal: ANIMALS[branchIndex], 
-                element: FIVE_ELEMENTS[HEAVENLY_STEMS[stemIndex]] 
-            };
+            return { year, stem: HEAVENLY_STEMS[stemIndex], branch: EARTHLY_BRANCHES[branchIndex], animal: ANIMALS[branchIndex], element: FIVE_ELEMENTS[HEAVENLY_STEMS[stemIndex]] };
         };
-
         const calculateLifePath = (dateString) => {
             if (!dateString) return null;
             const digits = dateString.replace(/[^0-9]/g, '').split('').map(Number);
@@ -197,88 +247,50 @@
             while (sum > 9) sum = sum.toString().split('').map(Number).reduce((a, b) => a + b, 0);
             return sum;
         };
-
         const calculateDistance = (lat1, lon1, lat2, lon2) => {
-            const R = 6371; 
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const R = 6371; const dLat = (lat2 - lat1) * Math.PI / 180; const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return (R * c).toFixed(1);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return (R * c).toFixed(1);
         };
-
-        // 姓名五行計算 (模擬)
         const getNameElement = (name) => {
             if (!name) return { element: "土", score: 0 };
-            let sum = 0;
-            for (let i = 0; i < name.length; i++) sum += name.charCodeAt(i);
-            const elementIndex = sum % 5;
-            return { element: NAME_ELEMENTS[elementIndex], val: elementIndex };
+            let sum = 0; for (let i = 0; i < name.length; i++) sum += name.charCodeAt(i);
+            const elementIndex = sum % 5; return { element: NAME_ELEMENTS[elementIndex], val: elementIndex };
         };
-
         const analyzeNameRelation = (e1, e2) => {
-            const cycle = [1, 3, 4, 0, 2]; // 木火土金水
-            const idx1 = cycle.indexOf(e1.val);
-            const idx2 = cycle.indexOf(e2.val);
-            
+            const cycle = [1, 3, 4, 0, 2]; const idx1 = cycle.indexOf(e1.val); const idx2 = cycle.indexOf(e2.val);
             if (e1.val === e2.val) return { type: "比和", ...NAME_RELATIONSHIPS["比和"] };
             if ((idx1 + 1) % 5 === idx2 || (idx2 + 1) % 5 === idx1) return { type: "相生", ...NAME_RELATIONSHIPS["相生"] };
             return { type: "相剋", ...NAME_RELATIONSHIPS["相剋"] };
         };
-
-        // 紫微斗數主星計算 (簡易模擬：基於年月日時的Hash)
         const getZiWeiMainStar = (dateString, timeString) => {
             if (!dateString) return null;
-            const d = new Date(dateString);
-            const year = d.getFullYear();
-            const month = d.getMonth() + 1;
-            const day = d.getDate();
-            const hour = timeString ? parseInt(timeString.split(':')[0]) : 12; // 預設午時
-            
-            // 簡易演算法 (非嚴謹排盤)：混合數字求餘數
-            const seed = year + month * 100 + day + hour * 10;
-            const keys = Object.keys(ZIWEI_STARS);
-            const starIndex = seed % keys.length;
-            const starName = keys[starIndex];
-            
+            const d = new Date(dateString); const year = d.getFullYear(); const month = d.getMonth() + 1; const day = d.getDate(); const hour = timeString ? parseInt(timeString.split(':')[0]) : 12;
+            const seed = year + month * 100 + day + hour * 10; const keys = Object.keys(ZIWEI_STARS); const starIndex = seed % keys.length; const starName = keys[starIndex];
             return { name: starName, ...ZIWEI_STARS[starName] };
         };
-
         const analyzeZiWeiMatch = (s1, s2) => {
-            // 簡易合盤邏輯
-            let type = "互相吸引";
-            let desc = "兩顆星的特質不同，容易產生好奇心。";
-            let score = 75;
-
-            // 領導型 vs 輔佐/合作型
-            const leaders = ["紫微", "天府", "武曲", "七殺", "破軍"];
-            const supporters = ["天機", "天同", "太陰", "天梁", "天相"];
-            
-            if (s1.name === s2.name) {
-                type = "知己知彼"; desc = "主星相同，性格相似，非常了解對方在想什麼，但也容易硬碰硬。"; score = 85;
-            } else if (leaders.includes(s1.name) && supporters.includes(s2.name)) {
-                type = "互補絕配"; desc = "一剛一柔，領導者遇到輔佐者，能夠各司其職，相處非常和諧。"; score = 95;
-            } else if (supporters.includes(s1.name) && leaders.includes(s2.name)) {
-                type = "互補絕配"; desc = "一柔一剛，您能包容對方的強勢，對方能給您安全感。"; score = 95;
-            } else if (leaders.includes(s1.name) && leaders.includes(s2.name)) {
-                type = "王見王"; desc = "雙方個性都很強勢，容易爭奪主導權，需要多溝通協調。"; score = 65;
-            } else if (supporters.includes(s1.name) && supporters.includes(s2.name)) {
-                type = "相敬如賓"; desc = "雙方都比較被動或溫和，感情細水長流，但可能缺乏一點激情。"; score = 80;
-            } else {
-                type = "歡喜冤家"; desc = "性格差異大，時而甜蜜時而爭吵，相處充滿樂趣與挑戰。"; score = 70;
+            let type = "互相吸引"; let desc = "兩顆星的特質不同，容易產生好奇心。"; let score = 75;
+            const leaders = ["紫微", "天府", "武曲", "七殺", "破軍"]; const supporters = ["天機", "天同", "太陰", "天梁", "天相"];
+            if (s1.name === s2.name) { type = "知己知彼"; desc = "主星相同，性格相似，非常了解對方在想什麼，但也容易硬碰硬。"; score = 85; }
+            else if (leaders.includes(s1.name) && supporters.includes(s2.name)) { type = "互補絕配"; desc = "一剛一柔，領導者遇到輔佐者，能夠各司其職，相處非常和諧。"; score = 95; }
+            else if (supporters.includes(s1.name) && leaders.includes(s2.name)) { type = "互補絕配"; desc = "一柔一剛，您能包容對方的強勢，對方能給您安全感。"; score = 95; }
+            else if (leaders.includes(s1.name) && leaders.includes(s2.name)) { type = "王見王"; desc = "雙方個性都很強勢，容易爭奪主導權，需要多溝通協調。"; score = 65; }
+            else if (supporters.includes(s1.name) && supporters.includes(s2.name)) { type = "相敬如賓"; desc = "雙方都比較被動或溫和，感情細水長流，但可能缺乏一點激情。"; score = 80; }
+            else { type = "歡喜冤家"; desc = "性格差異大，時而甜蜜時而爭吵，相處充滿樂趣與挑戰。"; score = 70;
             }
             return { type, desc, score };
         };
 
-        // --- 3. 主要應用程式 ---
+        // --- 主要應用程式 ---
         const App = () => {
             const [activeTab, setActiveTab] = useState('temple');
             const [userName, setUserName] = useState('');
             const [partnerName, setPartnerName] = useState('');
             const [birthDate, setBirthDate] = useState('');
-            const [birthTime, setBirthTime] = useState(''); // 新增：出生時間
+            const [birthTime, setBirthTime] = useState('');
             const [partnerDate, setPartnerDate] = useState('');
-            const [partnerTime, setPartnerTime] = useState(''); // 新增：對方出生時間
+            const [partnerTime, setPartnerTime] = useState('');
             const [lifePathNum, setLifePathNum] = useState(null);
             
             const [stickFortune, setStickFortune] = useState(null);
@@ -289,10 +301,7 @@
             const [nearestTemple, setNearestTemple] = useState(null);
             const [isLoadingLocation, setIsLoadingLocation] = useState(false);
             const [locationError, setLocationError] = useState(null);
-            
             const [fullAnalysis, setFullAnalysis] = useState(null);
-            
-            // 紫微斗數狀態
             const [ziweiStar, setZiweiStar] = useState(null);
 
             useEffect(() => {
@@ -304,7 +313,6 @@
 
             const handleStickDraw = () => { if(isShaking)return; setIsShaking(true); setStickFortune(null); setTimeout(()=>{setStickFortune(FORTUNE_STICKS[Math.floor(Math.random()*FORTUNE_STICKS.length)]);setIsShaking(false);},800); };
             const handleTarotDraw = () => { if(isFlipping)return; setIsFlipping(true); setTarotCard(null); setTimeout(()=>{setTarotCard(TAROT_CARDS[Math.floor(Math.random()*TAROT_CARDS.length)]);setIsFlipping(false);},600); };
-            
             const findNearest = () => {
                 setIsLoadingLocation(true); setLocationError(null);
                 if (!navigator.geolocation) { setLocationError("不支援定位"); setIsLoadingLocation(false); return; }
@@ -321,92 +329,46 @@
                     (err) => { setLocationError("無法取得位置"); setIsLoadingLocation(false); }
                 );
             };
-
             const analyzeFullMatch = () => {
                 if (!birthDate || !partnerDate) return;
-
-                // 1. 生命靈數
-                const num1 = calculateLifePath(birthDate);
-                const num2 = calculateLifePath(partnerDate);
-                
-                // 2. 星座
-                const z1 = getZodiacObj(birthDate);
-                const z2 = getZodiacObj(partnerDate);
+                const num1 = calculateLifePath(birthDate); const num2 = calculateLifePath(partnerDate);
+                const z1 = getZodiacObj(birthDate); const z2 = getZodiacObj(partnerDate);
                 let zodiacScore = 70; let aspect = "一般"; let aspectDesc = "性格互補，需要溝通。";
-                const zIndex1 = ZODIAC_SIGNS.findIndex(z => z.name === z1.name);
-                const zIndex2 = ZODIAC_SIGNS.findIndex(z => z.name === z2.name);
-                const diff = Math.abs(zIndex1 - zIndex2);
-                const angle = Math.min(diff, 12 - diff) * 30;
+                const zIndex1 = ZODIAC_SIGNS.findIndex(z => z.name === z1.name); const zIndex2 = ZODIAC_SIGNS.findIndex(z => z.name === z2.name);
+                const diff = Math.abs(zIndex1 - zIndex2); const angle = Math.min(diff, 12 - diff) * 30;
                 if (angle === 0) { aspect = "合相 (Conjunction)"; aspectDesc = "能量一致，容易共鳴。"; zodiacScore = 90; }
                 else if (angle === 120) { aspect = "拱相 (Trine)"; aspectDesc = "天造地設的和諧組合。"; zodiacScore = 95; }
                 else if (angle === 60) { aspect = "六分相 (Sextile)"; aspectDesc = "元素互補，互相激勵。"; zodiacScore = 85; }
                 else if (angle === 180) { aspect = "衝相 (Opposition)"; aspectDesc = "強烈吸引但易爭執。"; zodiacScore = 80; }
                 else if (angle === 90) { aspect = "刑相 (Square)"; aspectDesc = "性格差異大，需努力磨合。"; zodiacScore = 60; }
-
-                // 3. 八字
-                const b1 = getBaziYear(birthDate);
-                const b2 = getBaziYear(partnerDate);
+                const b1 = getBaziYear(birthDate); const b2 = getBaziYear(partnerDate);
                 let baziScore = 75; let baziRelation = "和平"; let baziDesc = "運勢平穩。";
                 const yearDiff = Math.abs(b1.year - b2.year) % 12;
                 if ([4, 8].includes(yearDiff)) { baziRelation = "三合 (吉)"; baziDesc = "互為貴人，相處順利。"; baziScore = 95; }
                 else if (yearDiff === 6) { baziRelation = "六沖"; baziDesc = "價值觀差異大。"; baziScore = 55; }
                 else if (b1.stem === b2.stem) { baziRelation = "比肩"; baziDesc = "像朋友一樣平起平坐。"; baziScore = 80; }
-
-                // 4. 姓名
-                const n1 = getNameElement(userName || "某人");
-                const n2 = getNameElement(partnerName || "某人");
+                const n1 = getNameElement(userName || "某人"); const n2 = getNameElement(partnerName || "某人");
                 const nameAnalysis = analyzeNameRelation(n1, n2);
-
-                // 5. 紫微斗數 (New)
-                const zw1 = getZiWeiMainStar(birthDate, birthTime);
-                const zw2 = getZiWeiMainStar(partnerDate, partnerTime);
+                const zw1 = getZiWeiMainStar(birthDate, birthTime); const zw2 = getZiWeiMainStar(partnerDate, partnerTime);
                 const zwAnalysis = analyzeZiWeiMatch(zw1, zw2);
-
-                // 總分計算
                 const finalScore = Math.floor((zodiacScore + baziScore + nameAnalysis.score + zwAnalysis.score) / 4);
-
-                setFullAnalysis({
-                    score: finalScore,
-                    names: { u1: userName || "您", u2: partnerName || "對方", n1, n2, analysis: nameAnalysis },
-                    numerology: { n1: num1, n2: num2, sum: num1 + num2 },
-                    zodiac: { p1: z1, p2: z2, aspect, desc: aspectDesc },
-                    bazi: { p1: b1, p2: b2, relation: baziRelation, desc: baziDesc },
-                    ziwei: { p1: zw1, p2: zw2, analysis: zwAnalysis }
-                });
+                setFullAnalysis({ score: finalScore, names: { u1: userName || "您", u2: partnerName || "對方", n1, n2, analysis: nameAnalysis }, numerology: { n1: num1, n2: num2, sum: num1 + num2 }, zodiac: { p1: z1, p2: z2, aspect, desc: aspectDesc }, bazi: { p1: b1, p2: b2, relation: baziRelation, desc: baziDesc }, ziwei: { p1: zw1, p2: zw2, analysis: zwAnalysis } });
             };
 
             return (
                 <div className="flex justify-center items-start pt-8 pb-20 px-4">
                     <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-red-800">
                         
-                        {/* 頂部區域：個人資料 */}
+                        {/* 頂部區域 */}
                         <div className="bg-red-800 p-6 text-center relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
                             <h1 className="text-2xl font-bold text-yellow-100 mb-1 tracking-wider">全方位戀愛運勢</h1>
                             <div className="text-red-200 text-xs mb-4">月老 x 塔羅 x 靈數 x 八字紫微</div>
-
-                            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-red-400/30 text-left space-y-2">
-                                <div>
-                                    <label className="block text-red-100 text-xs mb-1">您的姓名：</label>
-                                    <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="輸入姓名"
-                                        className="w-full bg-white/90 text-gray-800 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
-                                </div>
-                                <div>
-                                    <label className="block text-red-100 text-xs mb-1">出生日期與時間：</label>
-                                    <div className="flex items-center gap-2">
-                                        <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)}
-                                            className="w-full bg-white/90 text-gray-800 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 flex-grow" />
-                                        <input type="time" value={birthTime} onChange={(e) => setBirthTime(e.target.value)}
-                                            className="w-24 bg-white/90 text-gray-800 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
-                                        {lifePathNum && (
-                                            <span className="bg-yellow-400 text-red-900 font-bold w-8 h-8 flex items-center justify-center rounded-full shrink-0 shadow-lg animate-bounce text-sm">
-                                                {lifePathNum}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="text-[10px] text-red-200 mt-1">*時間影響紫微斗數準確度，若不知可不填(預設午時)</div>
-                                </div>
+                            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-red-400/30 text-left space-y-2 relative">
+                                <div><label className="block text-red-100 text-xs mb-1">您的姓名：</label><input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="輸入姓名" className="w-full bg-white/90 text-gray-800 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" /></div>
+                                <div><label className="block text-red-100 text-xs mb-1">出生日期與時間：</label><div className="flex items-center gap-2"><input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="w-full bg-white/90 text-gray-800 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 flex-grow" /><input type="time" value={birthTime} onChange={(e) => setBirthTime(e.target.value)} className="w-24 bg-white/90 text-gray-800 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />{lifePathNum && (<span className="bg-yellow-400 text-red-900 font-bold w-8 h-8 flex items-center justify-center rounded-full shrink-0 shadow-lg animate-bounce text-sm">{lifePathNum}</span>)}</div></div>
                             </div>
+                            <div className="mt-4 mx-2"><StickyNote>請填寫準確的「西元生日」與「出生時間」，這會影響到<b>紫微主星</b>與<b>生命靈數</b>的準確度喔！若不知道時間，系統預設為午時。</StickyNote></div>
                         </div>
 
                         {/* Tab 選單 */}
@@ -417,227 +379,48 @@
                             <button onClick={() => setActiveTab('match')} className={`flex-1 py-3 flex justify-center items-center ${activeTab === 'match' ? 'text-pink-600 border-b-2 border-pink-600 bg-pink-50' : 'text-gray-400'}`}><Icons.Users /></button>
                         </div>
 
-                        <div className="bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')] min-h-[400px]">
+                        <div className="bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')] min-h-[400px] relative">
                             
                             {/* Tab 1: 月老 */}
                             {activeTab === 'temple' && (
-                                <div className="p-4 space-y-4 animate-fade-in">
-                                    <div className="bg-white rounded-xl shadow-md p-4 border-2 border-yellow-400 relative overflow-hidden">
+                                <div className="p-4 space-y-4 animate-fade-in relative">
+                                    {/* 插圖：絕對定位在內容區塊內 */}
+                                    <div className="absolute top-2 right-2 w-32 h-32 opacity-100 z-50 pointer-events-none"><Icons.TempleIllustration /></div>
+                                    <div className="bg-white rounded-xl shadow-md p-4 border-2 border-yellow-400 relative overflow-hidden z-10">
                                         <div className="relative z-10 text-center">
                                             <h2 className="text-yellow-700 font-bold mb-3 flex items-center justify-center gap-2"><Icons.Locate /> 尋找身邊的緣分</h2>
-                                            {!nearestTemple ? (
-                                                <button onClick={findNearest} disabled={isLoadingLocation} className={`w-full py-2 rounded-full font-bold text-white shadow-md transition-all ${isLoadingLocation?'bg-gray-400':'bg-yellow-500 hover:bg-yellow-600'}`}>{isLoadingLocation?'定位中...':'搜尋最近月老'}</button>
-                                            ) : (
-                                                <div className="animate-fade-in text-left bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                                                    <div className="flex justify-between items-start mb-2"><div><div className="text-xs text-yellow-600 font-bold">最近的救星：</div><div className="text-xl font-bold text-gray-800">{nearestTemple.temple.name}</div></div><div className="text-right"><span className="block text-2xl font-bold text-red-600">{nearestTemple.distance}</span><span className="text-xs text-gray-500">公里</span></div></div>
-                                                    <a href={`https://www.google.com/maps/dir/?api=1&destination=${nearestTemple.temple.lat},${nearestTemple.temple.lng}`} target="_blank" className="block w-full text-center bg-blue-600 text-white text-sm py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-1"><Icons.Navigation /> 開啟導航</a>
-                                                </div>
-                                            )}
+                                            {!nearestTemple ? (<button onClick={findNearest} disabled={isLoadingLocation} className={`w-full py-2 rounded-full font-bold text-white shadow-md transition-all ${isLoadingLocation?'bg-gray-400':'bg-yellow-500 hover:bg-yellow-600'}`}>{isLoadingLocation?'定位中...':'搜尋最近月老'}</button>) : (<div className="animate-fade-in text-left bg-yellow-50 p-3 rounded-lg border border-yellow-200"><div className="flex justify-between items-start mb-2"><div><div className="text-xs text-yellow-600 font-bold">最近的救星：</div><div className="text-xl font-bold text-gray-800">{nearestTemple.temple.name}</div></div><div className="text-right"><span className="block text-2xl font-bold text-red-600">{nearestTemple.distance}</span><span className="text-xs text-gray-500">公里</span></div></div><a href={`https://www.google.com/maps/dir/?api=1&destination=${nearestTemple.temple.lat},${nearestTemple.temple.lng}`} target="_blank" className="block w-full text-center bg-blue-600 text-white text-sm py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-1"><Icons.Navigation /> 開啟導航</a></div>)}
                                         </div>
                                     </div>
-                                    {TEMPLE_DATA.map((cat) => (
-                                        <div key={cat.id} className={`rounded-xl border ${cat.borderColor} bg-white shadow-sm`}>
-                                            <div className={`${cat.color} p-3 flex items-center justify-between border-b ${cat.borderColor}`}><div className="flex items-center space-x-2"><div className="bg-white p-1.5 rounded-full shadow-sm">{cat.icon}</div><div><h3 className="font-bold text-gray-800 text-sm">{cat.title}</h3><p className="text-[10px] text-gray-500">{cat.subtitle}</p></div></div></div>
-                                            <div className="p-2 grid gap-1">{cat.temples.map((t,i)=><div key={i} className="flex justify-between items-center px-2 py-1.5 hover:bg-gray-50 rounded"><span className="text-sm font-medium">{t.name}</span><div className="flex flex-col items-end"><span className="text-[10px] bg-white border border-gray-200 px-1.5 py-0.5 rounded text-gray-500">{t.tag}</span></div></div>)}</div>
-                                        </div>
-                                    ))}
+                                    {TEMPLE_DATA.map((cat) => (<div key={cat.id} className={`rounded-xl border ${cat.borderColor} bg-white shadow-sm z-10 relative`}><div className={`${cat.color} p-3 flex items-center justify-between border-b ${cat.borderColor}`}><div className="flex items-center space-x-2"><div className="bg-white p-1.5 rounded-full shadow-sm">{cat.icon}</div><div><h3 className="font-bold text-gray-800 text-sm">{cat.title}</h3><p className="text-[10px] text-gray-500">{cat.subtitle}</p></div></div></div><div className="p-2 grid gap-1">{cat.temples.map((t,i)=><div key={i} className="flex justify-between items-center px-2 py-1.5 hover:bg-gray-50 rounded"><span className="text-sm font-medium">{t.name}</span><div className="flex flex-col items-end"><span className="text-[10px] bg-white border border-gray-200 px-1.5 py-0.5 rounded text-gray-500">{t.tag}</span></div></div>)}</div></div>))}
                                 </div>
                             )}
 
                             {/* Tab 2: 運勢 */}
                             {activeTab === 'fortune' && (
-                                <div className="p-4 space-y-8 animate-fade-in">
-                                    <div className="bg-white rounded-xl shadow-md p-4 border border-red-100">
-                                        <h2 className="text-center font-bold text-red-800 mb-3 flex items-center justify-center gap-2"><Icons.Scroll /> 每日戀愛靈籤</h2>
-                                        {!stickFortune ? (<button onClick={handleStickDraw} disabled={isShaking} className={`w-full ${isShaking?'bg-red-400 shake-animation':'bg-gradient-to-r from-red-600 to-red-500'} text-white py-3 rounded-lg font-bold shadow-lg`}>{isShaking?'誠心祈求中...':'搖一搖求籤'}</button>) : (<div className={`text-center p-4 rounded-lg border-2 border-dashed ${stickFortune.bg.replace('bg-', 'border-')} ${stickFortune.bg}`}><div className={`text-2xl font-bold mb-1 ${stickFortune.color}`}>{stickFortune.label}</div><div className="text-lg font-bold text-gray-800 mb-2">{stickFortune.title}</div><p className="text-sm text-gray-600">{stickFortune.text}</p><button onClick={()=>setStickFortune(null)} className="mt-3 text-xs text-gray-400 underline">重抽</button></div>)}
-                                    </div>
-                                    <div className="bg-white rounded-xl shadow-md p-4 border border-purple-100">
-                                        <h2 className="text-center font-bold text-purple-800 mb-3 flex items-center justify-center gap-2"><Icons.Sparkles /> 今日塔羅指引</h2>
-                                        {!tarotCard ? (<div onClick={handleTarotDraw} className="cursor-pointer group perspective-1000 w-32 h-48 mx-auto relative"><div className={`w-full h-full bg-purple-600 rounded-lg shadow-xl border-4 border-white flex items-center justify-center text-white text-4xl transition-transform duration-500 ${isFlipping?'rotate-y-180':''}`}>🔮</div><p className="text-center text-xs text-gray-400 mt-2">點擊卡背抽牌</p></div>) : (<div className="text-center animate-fade-in"><div className="w-20 h-28 bg-white border-2 border-purple-200 rounded mx-auto mb-2 flex items-center justify-center text-4xl shadow-sm">{tarotCard.image}</div><h3 className="font-bold text-lg text-gray-800">{tarotCard.name}</h3><p className="text-sm text-gray-600 mt-2 bg-purple-50 p-2 rounded">{tarotCard.advice}</p><button onClick={()=>setTarotCard(null)} className="mt-2 text-xs text-gray-400 underline">重抽</button></div>)}
-                                    </div>
+                                <div className="p-4 space-y-8 animate-fade-in relative">
+                                    <div className="absolute top-10 right-2 w-40 h-40 opacity-100 z-50 pointer-events-none"><Icons.FortuneIllustration /></div>
+                                    <StickyNote className="mb-0 bg-pink-50 border-pink-100 z-10"><b>每日一抽：</b>心誠則靈，建議每天早上出門前抽一支靈籤，或是心情迷惘時透過塔羅牌尋找當下的潛意識指引。</StickyNote>
+                                    <div className="bg-white rounded-xl shadow-md p-4 border border-red-100 relative z-10"><h2 className="text-center font-bold text-red-800 mb-3 flex items-center justify-center gap-2"><Icons.Scroll /> 每日戀愛靈籤</h2>{!stickFortune ? (<button onClick={handleStickDraw} disabled={isShaking} className={`w-full ${isShaking?'bg-red-400 shake-animation':'bg-gradient-to-r from-red-600 to-red-500'} text-white py-3 rounded-lg font-bold shadow-lg`}>{isShaking?'誠心祈求中...':'搖一搖求籤'}</button>) : (<div className={`text-center p-4 rounded-lg border-2 border-dashed ${stickFortune.bg.replace('bg-', 'border-')} ${stickFortune.bg}`}><div className={`text-2xl font-bold mb-1 ${stickFortune.color}`}>{stickFortune.label}</div><div className="text-lg font-bold text-gray-800 mb-2">{stickFortune.title}</div><p className="text-sm text-gray-600">{stickFortune.text}</p><button onClick={()=>setStickFortune(null)} className="mt-3 text-xs text-gray-400 underline">重抽</button></div>)}</div>
+                                    <div className="bg-white rounded-xl shadow-md p-4 border border-purple-100 relative z-10"><h2 className="text-center font-bold text-purple-800 mb-3 flex items-center justify-center gap-2"><Icons.Sparkles /> 今日塔羅指引</h2>{!tarotCard ? (<div onClick={handleTarotDraw} className="cursor-pointer group perspective-1000 w-32 h-48 mx-auto relative"><div className={`w-full h-full bg-purple-600 rounded-lg shadow-xl border-4 border-white flex items-center justify-center text-white text-4xl transition-transform duration-500 ${isFlipping?'rotate-y-180':''}`}>🔮</div><p className="text-center text-xs text-gray-400 mt-2">點擊卡背抽牌</p></div>) : (<div className="text-center animate-fade-in"><div className="w-20 h-28 bg-white border-2 border-purple-200 rounded mx-auto mb-2 flex items-center justify-center text-4xl shadow-sm">{tarotCard.image}</div><h3 className="font-bold text-lg text-gray-800">{tarotCard.name}</h3><p className="text-sm text-gray-600 mt-2 bg-purple-50 p-2 rounded">{tarotCard.advice}</p><button onClick={()=>setTarotCard(null)} className="mt-2 text-xs text-gray-400 underline">重抽</button></div>)}</div>
                                 </div>
                             )}
 
-                            {/* Tab 3: 紫微斗數 (New) */}
+                            {/* Tab 3: 紫微 */}
                             {activeTab === 'ziwei' && (
-                                <div className="p-6 animate-fade-in">
-                                    {!ziweiStar ? (<div className="text-center py-10"><div className="text-6xl mb-4 text-indigo-300"><Icons.Hexagon /></div><h3 className="text-lg font-bold text-gray-700 mb-2">請先輸入生日</h3><p className="text-sm text-gray-500">輸入生日與時間，解析您的「紫微命宮主星」。</p></div>) : (
-                                        <div className="bg-white rounded-xl shadow-lg border-t-4 border-indigo-500 overflow-hidden">
-                                            <div className="bg-indigo-50 p-6 text-center border-b border-indigo-100">
-                                                <div className="text-xs text-indigo-600 font-bold tracking-widest mb-1">YOUR STAR</div>
-                                                <div className="text-4xl font-black text-indigo-700 mb-2 drop-shadow-sm">{ziweiStar.name}星</div>
-                                                <div className="inline-block bg-indigo-200 text-indigo-800 px-3 py-1 rounded-full text-xs font-bold">{ziweiStar.type}</div>
-                                            </div>
-                                            <div className="p-6 space-y-4">
-                                                <div>
-                                                    <h3 className="text-sm font-bold text-gray-400 mb-1 uppercase">Personality</h3>
-                                                    <p className="text-gray-800 font-medium">{ziweiStar.character}</p>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-sm font-bold text-gray-400 mb-1 uppercase">Love View</h3>
-                                                    <p className="text-gray-600 text-sm leading-relaxed">{ziweiStar.love}</p>
-                                                </div>
-                                                <div className="pt-2 border-t border-gray-100">
-                                                    <p className="text-gray-500 text-xs leading-relaxed text-justify">{ziweiStar.desc}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                    <div className="mt-4 text-center text-[10px] text-gray-400">
-                                        註：此為簡易命盤模擬，精確排盤請諮詢專業命理師。
-                                    </div>
+                                <div className="p-6 animate-fade-in relative">
+                                    <div className="absolute top-2 right-2 w-32 h-32 opacity-100 z-50 pointer-events-none"><Icons.ZiweiIllustration /></div>
+                                    {!ziweiStar ? (<div className="text-center py-10 relative z-10"><div className="text-6xl mb-4 text-indigo-300"><Icons.Hexagon /></div><h3 className="text-lg font-bold text-gray-700 mb-2">請先輸入生日</h3><p className="text-sm text-gray-500">輸入生日與時間，解析您的「紫微命宮主星」。</p></div>) : (<><StickyNote className="mb-6 bg-indigo-50 border-indigo-100 z-10 relative"><b>命宮主星</b>代表您性格中最強烈的特質。了解自己，是談好戀愛的第一步。這也是別人在感情中看到的您喔！</StickyNote><div className="bg-white rounded-xl shadow-lg border-t-4 border-indigo-500 overflow-hidden relative z-10"><div className="bg-indigo-50 p-6 text-center border-b border-indigo-100"><div className="text-xs text-indigo-600 font-bold tracking-widest mb-1">YOUR STAR</div><div className="text-4xl font-black text-indigo-700 mb-2 drop-shadow-sm">{ziweiStar.name}星</div><div className="inline-block bg-indigo-200 text-indigo-800 px-3 py-1 rounded-full text-xs font-bold">{ziweiStar.type}</div></div><div className="p-6 space-y-4"><div><h3 className="text-sm font-bold text-gray-400 mb-1 uppercase">Personality</h3><p className="text-gray-800 font-medium">{ziweiStar.character}</p></div><div><h3 className="text-sm font-bold text-gray-400 mb-1 uppercase">Love View</h3><p className="text-gray-600 text-sm leading-relaxed">{ziweiStar.love}</p></div><div className="pt-2 border-t border-gray-100"><p className="text-gray-500 text-xs leading-relaxed text-justify">{ziweiStar.desc}</p></div></div></div></>)}<div className="mt-4 text-center text-[10px] text-gray-400 relative z-10">註：此為簡易命盤模擬，精確排盤請諮詢專業命理師。</div>
                                 </div>
                             )}
                             
-                            {/* Tab 4: 合盤分析 */}
+                            {/* Tab 4: 合盤 */}
                             {activeTab === 'match' && (
-                                <div className="p-4 animate-fade-in space-y-4">
-                                    <h2 className="text-center font-bold text-pink-600 mb-2 flex items-center justify-center gap-2">
-                                        <Icons.Users /> 深度合盤分析
-                                    </h2>
-                                    
-                                    {!birthDate ? (
-                                        <div className="text-center py-6 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">請先在上方紅色區塊完成您的資料</div>
-                                    ) : (
-                                        <>
-                                            <div className="bg-white p-4 rounded-xl shadow-sm border border-pink-100 space-y-3">
-                                                <div>
-                                                    <label className="block text-gray-600 text-xs font-bold mb-1">對方的姓名：</label>
-                                                    <input type="text" value={partnerName} onChange={(e) => setPartnerName(e.target.value)} placeholder="輸入對方姓名"
-                                                        className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-gray-600 text-xs font-bold mb-1">對方的生日與時間：</label>
-                                                    <div className="flex items-center gap-2">
-                                                        <input type="date" value={partnerDate} onChange={(e) => setPartnerDate(e.target.value)} 
-                                                            className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 flex-grow" />
-                                                        <input type="time" value={partnerTime} onChange={(e) => setPartnerTime(e.target.value)} 
-                                                            className="w-24 bg-gray-50 border border-gray-200 text-gray-800 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <button onClick={analyzeFullMatch} className="w-full bg-gradient-to-r from-pink-500 to-red-400 text-white py-3 rounded-lg font-bold shadow-md hover:shadow-lg transition-all active:scale-95">
-                                                開始綜合命理分析
-                                            </button>
-
-                                            {fullAnalysis && (
-                                                <div className="space-y-4 mt-4 animate-fade-in">
-                                                    
-                                                    {/* 總分卡 */}
-                                                    <div className="bg-white rounded-xl shadow-lg overflow-hidden relative">
-                                                        <div className="bg-gradient-to-r from-pink-500 to-rose-500 text-white p-4 text-center">
-                                                            <div className="text-xs font-bold opacity-80 mb-1">綜合契合度指數</div>
-                                                            <div className="text-5xl font-black">{fullAnalysis.score}%</div>
-                                                            <div className="text-sm mt-1">
-                                                                {fullAnalysis.score >= 90 ? "天作之合 💖" : fullAnalysis.score >= 80 ? "非常登對 ✨" : fullAnalysis.score >= 60 ? "需要磨合 🤝" : "挑戰較大 🔥"}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* 紫微合盤卡 (New) */}
-                                                    <div className="bg-white rounded-xl shadow-sm border border-indigo-100 overflow-hidden">
-                                                        <div className="bg-indigo-50 px-4 py-2 border-b border-indigo-100 flex items-center gap-2">
-                                                            <Icons.Hexagon className="text-indigo-600"/> 
-                                                            <span className="text-sm font-bold text-indigo-800">紫微斗數合盤</span>
-                                                        </div>
-                                                        <div className="p-4">
-                                                            <div className="flex justify-between items-center mb-3 text-center">
-                                                                <div>
-                                                                    <div className="text-lg font-bold text-indigo-700">{fullAnalysis.ziwei.p1.name}</div>
-                                                                    <span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded-full">{fullAnalysis.ziwei.p1.type}</span>
-                                                                </div>
-                                                                <div className="text-xs text-gray-400 font-bold">VS</div>
-                                                                <div>
-                                                                    <div className="text-lg font-bold text-indigo-700">{fullAnalysis.ziwei.p2.name}</div>
-                                                                    <span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded-full">{fullAnalysis.ziwei.p2.type}</span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="bg-indigo-50 rounded p-3 text-sm text-gray-700 border-l-4 border-indigo-400">
-                                                                <div className="font-bold text-indigo-900 mb-1">{fullAnalysis.ziwei.analysis.type}</div>
-                                                                {fullAnalysis.ziwei.analysis.desc}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* 姓名命理卡 */}
-                                                    <div className="bg-white rounded-xl shadow-sm border border-emerald-100 overflow-hidden">
-                                                        <div className="bg-emerald-50 px-4 py-2 border-b border-emerald-100 flex items-center gap-2">
-                                                            <Icons.Feather className="text-emerald-600"/> 
-                                                            <span className="text-sm font-bold text-emerald-800">姓名五行共鳴</span>
-                                                        </div>
-                                                        <div className="p-4">
-                                                            <div className="flex justify-between items-center mb-3 text-center">
-                                                                <div>
-                                                                    <div className="text-xs text-gray-500">五行屬{fullAnalysis.names.n1.element}</div>
-                                                                    <div className="text-lg font-bold text-emerald-700">{fullAnalysis.names.u1}</div>
-                                                                </div>
-                                                                <div className="text-sm font-bold text-gray-400 mx-2">vs</div>
-                                                                <div>
-                                                                    <div className="text-xs text-gray-500">五行屬{fullAnalysis.names.n2.element}</div>
-                                                                    <div className="text-lg font-bold text-emerald-700">{fullAnalysis.names.u2}</div>
-                                                                </div>
-                                                            </div>
-                                                            <div className="bg-emerald-50 rounded p-3 text-sm text-gray-700 border-l-4 border-emerald-400">
-                                                                <div className="font-bold text-emerald-900 mb-1">關係：{fullAnalysis.names.analysis.type}</div>
-                                                                {fullAnalysis.names.analysis.text}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* 星盤卡 */}
-                                                    <div className="bg-white rounded-xl shadow-sm border border-purple-100 overflow-hidden">
-                                                        <div className="bg-purple-50 px-4 py-2 border-b border-purple-100 flex items-center gap-2">
-                                                            <Icons.Moon className="text-purple-600"/> 
-                                                            <span className="text-sm font-bold text-purple-800">西洋星座相位</span>
-                                                        </div>
-                                                        <div className="p-4">
-                                                            <div className="flex justify-between items-center mb-3 text-center">
-                                                                <div>
-                                                                    <div className="text-lg font-bold text-purple-700">{fullAnalysis.zodiac.p1.name}</div>
-                                                                    <span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded-full">{fullAnalysis.zodiac.p1.element}象</span>
-                                                                </div>
-                                                                <div className="text-xs text-gray-400 font-bold">VS</div>
-                                                                <div>
-                                                                    <div className="text-lg font-bold text-purple-700">{fullAnalysis.zodiac.p2.name}</div>
-                                                                    <span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded-full">{fullAnalysis.zodiac.p2.element}象</span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="bg-purple-50 rounded p-3 text-sm text-gray-700 border-l-4 border-purple-400">
-                                                                <div className="font-bold text-purple-900 mb-1">{fullAnalysis.zodiac.aspect}</div>
-                                                                {fullAnalysis.zodiac.desc}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* 八字卡 */}
-                                                    <div className="bg-white rounded-xl shadow-sm border border-amber-100 overflow-hidden">
-                                                        <div className="bg-amber-50 px-4 py-2 border-b border-amber-100 flex items-center gap-2">
-                                                            <Icons.YinYang className="text-amber-600"/> 
-                                                            <span className="text-sm font-bold text-amber-800">八字生肖合盤</span>
-                                                        </div>
-                                                        <div className="p-4">
-                                                            <div className="flex justify-between items-center mb-3 text-center">
-                                                                <div>
-                                                                    <div className="text-lg font-bold text-amber-800">{fullAnalysis.bazi.p1.year}</div>
-                                                                    <div className="text-sm text-gray-600">{fullAnalysis.bazi.p1.element}命 · {fullAnalysis.bazi.p1.animal}</div>
-                                                                </div>
-                                                                <div>
-                                                                    <div className="text-lg font-bold text-amber-800">{fullAnalysis.bazi.p2.year}</div>
-                                                                    <div className="text-sm text-gray-600">{fullAnalysis.bazi.p2.element}命 · {fullAnalysis.bazi.p2.animal}</div>
-                                                                </div>
-                                                            </div>
-                                                            <div className="bg-amber-50 rounded p-3 text-sm text-gray-700 border-l-4 border-amber-400">
-                                                                <div className="font-bold text-amber-900 mb-1">關係：{fullAnalysis.bazi.relation}</div>
-                                                                {fullAnalysis.bazi.desc}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
+                                <div className="p-4 animate-fade-in space-y-4 relative">
+                                    <div className="absolute top-2 right-2 w-32 h-32 opacity-100 z-50 pointer-events-none"><Icons.MatchIllustration /></div>
+                                    <StickyNote className="mb-2 bg-red-50 border-red-100 z-10">這是一個<b>超綜合分析</b>！我們同時運算了西方星座相位、東方八字生肖、紫微主星互動以及姓名五行。分數僅供參考，相處還是要靠經營喔 ❤️</StickyNote>
+                                    <h2 className="text-center font-bold text-pink-600 mb-2 flex items-center justify-center gap-2 relative z-10"><Icons.Users /> 深度合盤分析</h2>
+                                    {!birthDate ? (<div className="text-center py-6 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300 relative z-10">請先在上方紅色區塊完成您的資料</div>) : (<><div className="bg-white p-4 rounded-xl shadow-sm border border-pink-100 space-y-3 relative z-10"><div><label className="block text-gray-600 text-xs font-bold mb-1">對方的姓名：</label><input type="text" value={partnerName} onChange={(e) => setPartnerName(e.target.value)} placeholder="輸入對方姓名" className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400" /></div><div><label className="block text-gray-600 text-xs font-bold mb-1">對方的生日與時間：</label><div className="flex items-center gap-2"><input type="date" value={partnerDate} onChange={(e) => setPartnerDate(e.target.value)} className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 flex-grow" /><input type="time" value={partnerTime} onChange={(e) => setPartnerTime(e.target.value)} className="w-24 bg-gray-50 border border-gray-200 text-gray-800 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400" /></div></div></div><button onClick={analyzeFullMatch} className="w-full bg-gradient-to-r from-pink-500 to-red-400 text-white py-3 rounded-lg font-bold shadow-md hover:shadow-lg transition-all active:scale-95 relative z-10">開始綜合命理分析</button>{fullAnalysis && (<div className="space-y-4 mt-4 animate-fade-in relative z-10"><div className="bg-white rounded-xl shadow-lg overflow-hidden relative"><div className="bg-gradient-to-r from-pink-500 to-rose-500 text-white p-4 text-center"><div className="text-xs font-bold opacity-80 mb-1">綜合契合度指數</div><div className="text-5xl font-black">{fullAnalysis.score}%</div><div className="text-sm mt-1">{fullAnalysis.score >= 90 ? "天作之合 💖" : fullAnalysis.score >= 80 ? "非常登對 ✨" : fullAnalysis.score >= 60 ? "需要磨合 🤝" : "挑戰較大 🔥"}</div></div></div><div className="bg-white rounded-xl shadow-sm border border-indigo-100 overflow-hidden"><div className="bg-indigo-50 px-4 py-2 border-b border-indigo-100 flex items-center gap-2"><Icons.Hexagon className="text-indigo-600"/> <span className="text-sm font-bold text-indigo-800">紫微斗數合盤</span></div><div className="p-4"><div className="flex justify-between items-center mb-3 text-center"><div><div className="text-lg font-bold text-indigo-700">{fullAnalysis.ziwei.p1.name}</div><span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded-full">{fullAnalysis.ziwei.p1.type}</span></div><div className="text-xs text-gray-400 font-bold">VS</div><div><div className="text-lg font-bold text-indigo-700">{fullAnalysis.ziwei.p2.name}</div><span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded-full">{fullAnalysis.ziwei.p2.type}</span></div></div><div className="bg-indigo-50 rounded p-3 text-sm text-gray-700 border-l-4 border-indigo-400"><div className="font-bold text-indigo-900 mb-1">{fullAnalysis.ziwei.analysis.type}</div>{fullAnalysis.ziwei.analysis.desc}</div></div></div><div className="bg-white rounded-xl shadow-sm border border-emerald-100 overflow-hidden"><div className="bg-emerald-50 px-4 py-2 border-b border-emerald-100 flex items-center gap-2"><Icons.Feather className="text-emerald-600"/> <span className="text-sm font-bold text-emerald-800">姓名五行共鳴</span></div><div className="p-4"><div className="flex justify-between items-center mb-3 text-center"><div><div className="text-xs text-gray-500">五行屬{fullAnalysis.names.n1.element}</div><div className="text-lg font-bold text-emerald-700">{fullAnalysis.names.u1}</div></div><div className="text-sm font-bold text-gray-400 mx-2">vs</div><div><div className="text-xs text-gray-500">五行屬{fullAnalysis.names.n2.element}</div><div className="text-lg font-bold text-emerald-700">{fullAnalysis.names.u2}</div></div></div><div className="bg-emerald-50 rounded p-3 text-sm text-gray-700 border-l-4 border-emerald-400"><div className="font-bold text-emerald-900 mb-1">關係：{fullAnalysis.names.analysis.type}</div>{fullAnalysis.names.analysis.text}</div></div></div><div className="bg-white rounded-xl shadow-sm border border-purple-100 overflow-hidden"><div className="bg-purple-50 px-4 py-2 border-b border-purple-100 flex items-center gap-2"><Icons.Moon className="text-purple-600"/> <span className="text-sm font-bold text-purple-800">西洋星座相位</span></div><div className="p-4"><div className="flex justify-between items-center mb-3 text-center"><div><div className="text-lg font-bold text-purple-700">{fullAnalysis.zodiac.p1.name}</div><span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded-full">{fullAnalysis.zodiac.p1.element}象</span></div><div className="text-xs text-gray-400 font-bold">VS</div><div><div className="text-lg font-bold text-purple-700">{fullAnalysis.zodiac.p2.name}</div><span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded-full">{fullAnalysis.zodiac.p2.element}象</span></div></div><div className="bg-purple-50 rounded p-3 text-sm text-gray-700 border-l-4 border-purple-400"><div className="font-bold text-purple-900 mb-1">{fullAnalysis.zodiac.aspect}</div>{fullAnalysis.zodiac.desc}</div></div></div><div className="bg-white rounded-xl shadow-sm border border-amber-100 overflow-hidden"><div className="bg-amber-50 px-4 py-2 border-b border-amber-100 flex items-center gap-2"><Icons.YinYang className="text-amber-600"/> <span className="text-sm font-bold text-amber-800">八字生肖合盤</span></div><div className="p-4"><div className="flex justify-between items-center mb-3 text-center"><div><div className="text-lg font-bold text-amber-800">{fullAnalysis.bazi.p1.year}</div><div className="text-sm text-gray-600">{fullAnalysis.bazi.p1.element}命 · {fullAnalysis.bazi.p1.animal}</div></div><div><div className="text-lg font-bold text-amber-800">{fullAnalysis.bazi.p2.year}</div><div className="text-sm text-gray-600">{fullAnalysis.bazi.p2.element}命 · {fullAnalysis.bazi.p2.animal}</div></div></div><div className="bg-amber-50 rounded p-3 text-sm text-gray-700 border-l-4 border-amber-400"><div className="font-bold text-amber-900 mb-1">關係：{fullAnalysis.bazi.relation}</div>{fullAnalysis.bazi.desc}</div></div></div></div>)}</>)}
                                 </div>
                             )}
 
